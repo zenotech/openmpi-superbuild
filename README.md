@@ -1,0 +1,2 @@
+# openmpi-superbuild
+OpenMPI superbuild
