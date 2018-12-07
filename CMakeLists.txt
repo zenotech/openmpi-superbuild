@@ -7,7 +7,10 @@ list(INSERT CMAKE_MODULE_PATH 0
 
 macro (superbuild_setup_variables)
   include(SuperbuildVersionMacros)
-  superbuild_set_version_variables(openmpi "4.0.0" "paraview-version.cmake" "version.txt")
+  #The selection is the version number; use it.
+  set(openmpi_default_version "${openmpi_SOURCE_SELECTION}")
+  superbuild_set_version_variables(openmpi ${openmpi_default_version} "openmpi-version.cmake" "version.txt")
+  set(openmpi_version "${openmpi_version_major}.${openmpi_version_minor}")
 endmacro ()
 
 function (superbuild_find_projects var)

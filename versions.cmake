@@ -1,14 +1,13 @@
-superbuild_set_revision(openmpi
+
+superbuild_set_selectable_source(openmpi
+ SELECT 4.0.0 DEFAULT	
   URL     "https://download.open-mpi.org/release/open-mpi/v4.0/openmpi-4.0.0.tar.bz2"
-  URL_MD5 e3da67df1e968c8798827e0e5fe9a510)
-
-#superbuild_set_revision(libfabric
-#  URL     "https://github.com/ofiwg/libfabric/archive/v1.6.2.tar.gz"
-#  URL_MD5 aa35431f1372b4a670ab2e7c7503967c)
-
+  URL_MD5 e3da67df1e968c8798827e0e5fe9a510
+  )
+   
 superbuild_set_revision(libfabric
-	  URL     "https://github.com/ofiwg/libfabric/archive/v1.7.0rc1.tar.gz"
-	    URL_MD5 9c23f3886e57b605115c6c3e7f64ba28)
+  URL     "https://github.com/ofiwg/libfabric/archive/v1.7.0rc1.tar.gz"
+  URL_MD5 9c23f3886e57b605115c6c3e7f64ba28)
 
 
 superbuild_set_revision(ucx
