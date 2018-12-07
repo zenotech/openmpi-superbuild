@@ -15,6 +15,7 @@ function (superbuild_find_projects var)
   set(projects
     openmpi
     libfabric
+    ucx
     psm2
     cuda)
 
