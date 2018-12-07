@@ -7,33 +7,34 @@ set(CPACK_PACKAGE_NAME "openmpi")
   set(CPACK_PACKAGE_VERSION_PATCH "${openmpi_version_patch}${openmpi_version_suffix}")
   
   set(CPACK_PACKAGE_FILE_NAME
-	      "${CPACK_PACKAGE_NAME}-${CPACK_PACKAGE_VERSION_MAJOR}.${CPACK_PACKAGE_VERSION_MINOR}.${CPACK_PACKAGE_VERSION_PATCH}")
+     "${CPACK_PACKAGE_NAME}-${CPACK_PACKAGE_VERSION_MAJOR}.${CPACK_PACKAGE_VERSION_MINOR}.${CPACK_PACKAGE_VERSION_PATCH}")
 
 # Install etc
 install(DIRECTORY "${superbuild_install_location}/etc/"
-	    DESTINATION "etc"
-	        USE_SOURCE_PERMISSIONS
-		    COMPONENT superbuild)
+    DESTINATION "etc"
+    USE_SOURCE_PERMISSIONS
+    COMPONENT superbuild)
 
-	    # Install share
-	    install(DIRECTORY "${superbuild_install_location}/share/"
-		        DESTINATION "share"
-			    USE_SOURCE_PERMISSIONS
-			        COMPONENT superbuild)
+# Install share
+install(DIRECTORY "${superbuild_install_location}/share/"
+    DESTINATION "share"
+    USE_SOURCE_PERMISSIONS
+    COMPONENT superbuild)
 
-			# Install bin
-			install(DIRECTORY "${superbuild_install_location}/bin/"
-				    DESTINATION "bin"
-				        USE_SOURCE_PERMISSIONS
-					    COMPONENT superbuild)
+# Install bin
+install(DIRECTORY "${superbuild_install_location}/bin/"
+    DESTINATION "bin"
+    USE_SOURCE_PERMISSIONS
+    COMPONENT superbuild)
 
-				    # Install lib
-				    install(DIRECTORY "${superbuild_install_location}/lib/"
-					        DESTINATION "lib"
-						    USE_SOURCE_PERMISSIONS
-						        COMPONENT superbuild)
+# Install lib
+install(DIRECTORY "${superbuild_install_location}/lib/"
+    DESTINATION "lib"
+    USE_SOURCE_PERMISSIONS
+    COMPONENT superbuild)
+
 # Install include
 install(DIRECTORY "${superbuild_install_location}/include/"
-	    DESTINATION "include"
-	        USE_SOURCE_PERMISSIONS
-		    COMPONENT superbuild)
+    DESTINATION "include"
+    USE_SOURCE_PERMISSIONS
+    COMPONENT superbuild)
