@@ -20,6 +20,7 @@ function (superbuild_find_projects var)
     libfabric
     ucx
     psm2
+    gdrcopy
     cuda)
 
   set("${var}"

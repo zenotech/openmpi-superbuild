@@ -15,7 +15,6 @@ superbuild_add_project(
                     --enable-tcp=yes 
 		    --enable-verbs=dl
 		    --enable-mlx=dl:<INSTALL_DIR>
-		    #--with-mlx=<INSTALL_DIR>
 		    ${PSM_OPTION}
   BUILD_COMMAND make -j${SUPERBUILD_PROJECT_PARALLELISM} -l${SUPERBUILD_PROJECT_PARALLELISM}
   INSTALL_COMMAND make install

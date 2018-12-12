@@ -19,3 +19,12 @@ superbuild_set_revision(ucx
 superbuild_set_revision(psm2
   URL     "https://github.com/intel/opa-psm2/archive/IFS_RELEASE_10_8_0_0_204.tar.gz"
   URL_MD5 bc6fabf0807109849124fdfa48d68ab4)
+
+superbuild_set_revision(gdrcopy
+  URL "https://github.com/NVIDIA/gdrcopy/archive/v1.3.tar.gz"
+  URL_MD5 8ef139cd342cd2071d68de9bf7ba8b55)
+
+superbuild_set_revision(nccl
+  URL "https://github.com/NVIDIA/nccl/archive/v2.3.7-1.tar.gz"
+  URL_MD5 bc6fabf0807109849124fdfa48d68ab4)
+
