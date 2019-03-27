@@ -9,12 +9,12 @@ superbuild_set_selectable_source(openmpi
 )
    
 superbuild_set_revision(libfabric
-  URL     "https://github.com/ofiwg/libfabric/archive/v1.7.0rc1.tar.gz"
-  URL_MD5 9c23f3886e57b605115c6c3e7f64ba28)
+  URL     "https://github.com/ofiwg/libfabric/releases/download/v1.7.0/libfabric-1.7.0.tar.bz2"
+  URL_MD5 3a5f01a1515b0586c7ec94b6b77202cf)
 
 superbuild_set_revision(ucx
-  URL "https://github.com/openucx/ucx/archive/v1.4.0.tar.gz"
-  URL_MD5 31bdc7cd5224ec6ff24427d46d288d6b) 
+  URL "https://github.com/openucx/ucx/archive/v1.5.0.tar.gz"
+  URL_MD5 8d60eca858dcc7dd2dca9b190f8e7d76) 
 
 superbuild_set_revision(psm2
   URL     "https://github.com/intel/opa-psm2/archive/IFS_RELEASE_10_8_0_0_204.tar.gz"
@@ -25,6 +25,6 @@ superbuild_set_revision(gdrcopy
   URL_MD5 8ef139cd342cd2071d68de9bf7ba8b55)
 
 superbuild_set_revision(nccl
-  URL "https://github.com/NVIDIA/nccl/archive/v2.3.7-1.tar.gz"
+  URL "https://github.com/NVIDIA/nccl/archive/v2.4.2-1.tar.gz"
   URL_MD5 bc6fabf0807109849124fdfa48d68ab4)
 

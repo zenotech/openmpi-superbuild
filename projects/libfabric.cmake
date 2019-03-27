@@ -9,8 +9,9 @@ superbuild_add_project(
   DEPENDS ucx
   DEPENDS_OPTIONAL psm2 
   BUILD_IN_SOURCE 1
-  PATCH_COMMAND <SOURCE_DIR>/autogen.sh
+  PATCH_COMMAND "" 
   CONFIGURE_COMMAND <SOURCE_DIR>/configure 
+                    --verbose
                     --prefix=<INSTALL_DIR> 
                     --enable-tcp=yes 
 		    --enable-verbs=dl
