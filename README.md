@@ -43,4 +43,5 @@ Mount options noac,lock,local_local=none
 
 fi_info  -e
 
+Need to set FI_PROVIDER_PATH to lib/libfabric
 
