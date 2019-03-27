@@ -11,6 +11,10 @@ ctest -R
 popd
 ```
 
+cuda support build requires PATH to nvcc and LD_LIBRARY_PATH to libcudart.so to be set
+
+psm2 build requires hfi-devel package to be installed 
+
 ## References
 
 - https://software.intel.com/en-us/articles/a-bkm-for-working-with-libfabric-on-a-cluster-system-when-using-intel-mpi-library
@@ -31,11 +35,11 @@ sudo cma_roce_mode -d mlx5_0 -p 1
 -mca pml ucx --mca btl self -x UCX_TLS=rc,self,sm -x UCX_NET_DEVICES=mlx5_2:1 -x UCX_IB_GID_INDEX=3 -x UCX_IB_TRAFFIC_CLASS=104
 
 
-ROMIO NFS
+## ROMIO NFS
 
 Mount options noac,lock,local_local=none
 
-libfabric
+## libfabric
 
 fi_info  -e
 
