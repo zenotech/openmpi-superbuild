@@ -12,11 +12,13 @@ superbuild_add_project(
   DEPENDS_OPTIONAL cuda gdrcopy
   BUILD_IN_SOURCE 1
   PATCH_COMMAND     <SOURCE_DIR>/autogen.sh
-  CONFIGURE_COMMAND <SOURCE_DIR>/contrib/configure-release 
+  CONFIGURE_COMMAND <SOURCE_DIR>/contrib/configure-release
                     --prefix=<INSTALL_DIR>
-		    --enable-mt
-		    --enable-optimizations
-		    ${CUDA_OPTION} 
+                    --without-mpi
+                    --enable-mt
+                    --enable-optimizations
+                    ${CUDA_OPTION}
+                    MPICC=
   BUILD_COMMAND make -j${SUPERBUILD_PROJECT_PARALLELISM} -l${SUPERBUILD_PROJECT_PARALLELISM}
   INSTALL_COMMAND make install
   )
