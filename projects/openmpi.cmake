@@ -9,6 +9,11 @@ if(ENABLE_ucx)
   set(UCX_OPTION "--with-ucx=<INSTALL_DIR>")
 endif()
 
+set(PSM_OPTION)
+if(ENABLE_psm2)
+    set(PSM_OPTION "--with-psm2=<INSTALL_DIR>/usr")
+endif()
+
 superbuild_add_project(
   openmpi
   DEPENDS libfabric
@@ -22,6 +27,7 @@ superbuild_add_project(
 		    --with-io-romio-flags=--with-file-system=nfs+ufs+gpfs+lustre
                     ${CUDA_OPTION}
 		    ${UCX_OPTION}
+		    ${PSM_OPTION}
   BUILD_COMMAND make -j${SUPERBUILD_PROJECT_PARALLELISM} -l${SUPERBUILD_PROJECT_PARALLELISM}
   INSTALL_COMMAND make install
   )
