@@ -38,3 +38,18 @@ install(DIRECTORY "${superbuild_install_location}/include/"
     DESTINATION "include"
     USE_SOURCE_PERMISSIONS
     COMPONENT superbuild)
+
+if(ENABLE_psm2)
+  install(DIRECTORY "${superbuild_install_location}/usr/include/"
+      DESTINATION "include"
+      USE_SOURCE_PERMISSIONS
+     COMPONENT superbuild)
+  install(DIRECTORY "${superbuild_install_location}/usr/lib64/"
+     DESTINATION "lib64"
+     USE_SOURCE_PERMISSIONS
+     COMPONENT superbuild)
+  install(DIRECTORY "${superbuild_install_location}/usr/lib/"
+     DESTINATION "lib"
+     USE_SOURCE_PERMISSIONS
+     COMPONENT superbuild)
+endif()
