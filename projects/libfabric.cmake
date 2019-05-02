@@ -1,7 +1,7 @@
 
 set(PSM_OPTION)
 if(ENABLE_psm2)
-	set(PSM_OPTION "--enable-psm2=dl --with-psm2-src=INSTALL_DIR>")
+	set(PSM_OPTION "--enable-psm2=dl:<INSTALL_DIR>/usr")
 endif()
 
 superbuild_add_project(
