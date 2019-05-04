@@ -11,7 +11,7 @@ endif()
 
 set(PSM_OPTION)
 if(ENABLE_psm2)
-    set(PSM_OPTION "--with-psm2=<INSTALL_DIR>/usr")
+    set(PSM_OPTION --with-psm2=<INSTALL_DIR>/usr --with-psm2-libdir=<INSTALL_DIR>/usr/lib64)
 endif()
 
 superbuild_add_project(
