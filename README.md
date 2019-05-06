@@ -15,6 +15,8 @@ cuda support build requires PATH to nvcc and LD_LIBRARY_PATH to libcudart.so to 
 
 psm2 build requires hfi-devel package to be installed 
 
+Select version to build -Dopenmpi_SOURCE_SELECTION=4.0.1
+
 ## References
 
 - https://software.intel.com/en-us/articles/a-bkm-for-working-with-libfabric-on-a-cluster-system-when-using-intel-mpi-library
