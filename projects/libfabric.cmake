@@ -3,11 +3,14 @@ set(PSM_OPTION)
 if(ENABLE_psm2)
 	set(PSM_OPTION "--enable-psm2=dl:<INSTALL_DIR>/usr")
 endif()
+set(UCX_OPTION)
+if(ENABLE_ucx)
+	set(UCX_OPTION "--enable-mlx=dl:<INSTALL_DIR>")
+endif()
 
 superbuild_add_project(
   libfabric
-  DEPENDS ucx
-  DEPENDS_OPTIONAL psm2 
+  DEPENDS_OPTIONAL ucx psm2 
   BUILD_IN_SOURCE 1
   PATCH_COMMAND "" 
   CONFIGURE_COMMAND <SOURCE_DIR>/configure 
@@ -15,7 +18,7 @@ superbuild_add_project(
                     --prefix=<INSTALL_DIR> 
                     --enable-tcp=yes 
 		    --enable-verbs=dl
-		    --enable-mlx=dl:<INSTALL_DIR>
+		    ${UCX_OPTION}
 		    ${PSM_OPTION}
   BUILD_COMMAND make -j${SUPERBUILD_PROJECT_PARALLELISM} -l${SUPERBUILD_PROJECT_PARALLELISM}
   INSTALL_COMMAND make install
