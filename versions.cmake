@@ -2,7 +2,7 @@
 superbuild_set_selectable_source(openmpi
   SELECT 4.0.3
   URL     "https://download.open-mpi.org/release/open-mpi/v4.0/openmpi-4.0.3.tar.bz2"
-  URL_MD5 d958454e32da2c86dd32b7d557cf9a401f0a08d3
+  URL_MD5 851553085013939f24cdceb1af06b828
   SELECT 3.1.6 DEFAULT
   URL     "https://download.open-mpi.org/release/open-mpi/v3.1/openmpi-3.1.6.tar.bz2"
   URL_MD5 d2b643de03d8f7d8064d7a35ad5b385d
