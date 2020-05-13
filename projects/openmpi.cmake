@@ -25,6 +25,7 @@ superbuild_add_project(
 		    --with-verbs 
 		    --enable-orterun-prefix-by-default 
 		    --with-io-romio-flags=--with-file-system=nfs+ufs+gpfs+lustre
+		    --enable-mpi1-compatibility
                     ${CUDA_OPTION}
 		    ${UCX_OPTION}
 		    ${PSM_OPTION}
