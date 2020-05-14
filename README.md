@@ -5,7 +5,7 @@ OpenMPI superbuild
 
 ```
 mkdir build; pushd build
-cmake -DENABLE_openmpi=ON -DENABLE_cuda=ON -DENABLE_ucx=ON -DENABLE_psm2=OFF ../openmpi-superbuild/
+cmake -DENABLE_openmpi=ON -DENABLE_cuda=ON -DENABLE_ucx=ON -DENABLE_efa=OFF -DENABLE_psm2=OFF ../openmpi-superbuild/
 cmake --build . -- VERBOSE=true
 ctest -R
 popd
@@ -15,7 +15,7 @@ cuda support build requires PATH to nvcc and LD_LIBRARY_PATH to libcudart.so to 
 
 psm2 build requires hfi-devel package to be installed 
 
-Select version to build -Dopenmpi_SOURCE_SELECTION=4.0.1
+Select version to build -Dopenmpi_SOURCE_SELECTION=3.6.1
 
 ## References
 
