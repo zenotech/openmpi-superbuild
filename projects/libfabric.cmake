@@ -7,6 +7,9 @@ set(UCX_OPTION)
 if(ENABLE_ucx)
 	set(UCX_OPTION "--enable-mlx=dl:<INSTALL_DIR>")
 endif()
+if(ENABLE_efa)
+        set(EFA_OPTION "--enable-efa=dl")
+endif()
 
 superbuild_add_project(
   libfabric
@@ -18,6 +21,7 @@ superbuild_add_project(
                     --prefix=<INSTALL_DIR> 
                     --enable-tcp=yes 
 		    --enable-verbs=dl
+                    ${EFA_OPTION}
 		    ${UCX_OPTION}
 		    ${PSM_OPTION}
   BUILD_COMMAND make -j${SUPERBUILD_PROJECT_PARALLELISM} -l${SUPERBUILD_PROJECT_PARALLELISM}
