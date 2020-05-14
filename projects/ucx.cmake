@@ -11,7 +11,7 @@ superbuild_add_project(
   ucx
   DEPENDS_OPTIONAL cuda gdrcopy
   BUILD_IN_SOURCE 1
-  PATCH_COMMAND     <SOURCE_DIR>/autogen.sh
+  #PATCH_COMMAND     <SOURCE_DIR>/autogen.sh
   CONFIGURE_COMMAND <SOURCE_DIR>/contrib/configure-release
                     --prefix=<INSTALL_DIR>
                     --without-mpi
