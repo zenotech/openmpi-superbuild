@@ -21,7 +21,9 @@ function (superbuild_find_projects var)
     ucx
     psm2
     gdrcopy
-    cuda)
+    cuda
+    nccl
+    awsofinccl)
 
   set("${var}"
     ${projects}

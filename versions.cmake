@@ -9,22 +9,26 @@ superbuild_set_selectable_source(openmpi
 )
    
 superbuild_set_revision(libfabric
-  URL     "https://github.com/ofiwg/libfabric/releases/download/v1.10.1/libfabric-1.10.1.tar.bz2"
-  URL_MD5 4b1aed12bbf0569eaf9fcf5828f6d928)
+  URL     "https://github.com/ofiwg/libfabric/releases/download/v1.11.1/libfabric-1.11.1.tar.bz2"
+  URL_MD5 7d4d872d3db0fc69156767807f0f8ab2)
 
 superbuild_set_revision(ucx
-  URL "https://github.com/openucx/ucx/releases/download/v1.8.0-rc1/ucx-1.8.0.tar.gz"
-  URL_MD5 7b0070c74136d223f479193dd8d0cf31)
+  URL "https://github.com/openucx/ucx/releases/download/v1.9.0/ucx-1.9.0.tar.gz"
+  URL_MD5 4c9ce14fd8e141a5c1e105475bd3b185)
 
 superbuild_set_revision(psm2
-  URL     "https://github.com/intel/opa-psm2/archive/IFS_RELEASE_10_8_0_0_204.tar.gz"
-  URL_MD5 bc6fabf0807109849124fdfa48d68ab4)
+  URL     "https://github.com/intel/opa-psm2/archive/IFS_RELEASE_10_10_2_0_44.tar.gz"
+  URL_MD5 08f5b34fc1e063f7faf0e0eef092309c)
 
 superbuild_set_revision(gdrcopy
   URL "https://github.com/NVIDIA/gdrcopy/archive/v1.3.tar.gz"
   URL_MD5 8ef139cd342cd2071d68de9bf7ba8b55)
 
 superbuild_set_revision(nccl
-  URL "https://github.com/NVIDIA/nccl/archive/v2.4.2-1.tar.gz"
-  URL_MD5 bc6fabf0807109849124fdfa48d68ab4)
+  URL "https://github.com/NVIDIA/nccl/archive/v2.7.8-1.tar.gz"
+  URL_MD5 2ad66167be386ec506426cede8a90df2)
+
+superbuild_set_revision(awsofinccl
+  URL "https://github.com/aws/aws-ofi-nccl/archive/v1.1.1.tar.gz"
+  URL_MD5 17e52db3937b347acd6171325e4ee4e9)
 
