@@ -2,7 +2,8 @@
 
 superbuild_add_project(
   awsofinccl 
-  DEPENDS cuda nccl libfabric openmpi
+  DEPENDS cuda nccl libfabric 
+  DEPEND_OPTIONAL openmpi
   BUILD_IN_SOURCE 1
   PATCH_COMMAND <SOURCE_DIR>/autogen.sh 
   CONFIGURE_COMMAND <SOURCE_DIR>/configure 
