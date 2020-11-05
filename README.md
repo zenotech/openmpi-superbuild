@@ -23,6 +23,14 @@ Select version to build -Dopenmpi_SOURCE_SELECTION=3.6.1
 - https://hpcadvisorycouncil.atlassian.net/wiki/spaces/HPCWORKS/pages/13074505/MPI+Frameworks
 - https://www.mellanox.com/related-docs/prod_acceleration_software/HPC-X_Toolkit_User_Manual_v2.3.pdf
 
+
+## EFA notes
+
+Install driver as per
+https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/efa-start.html
+Use this install option for gpu nodes
+sudo ./efa_installer.sh -y --enable-gdr
+
 ## UCX Notes
 
 -mca pml ucx --mca btl self -x UCX_TLS=rc,self,sm -x UCX_NET_DEVICES=mlx5_0:1
