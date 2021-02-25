@@ -1,0 +1,5 @@
+[intel-local.repo]
+name=intel-local
+baseurl=file:///parallel_studio_xe_2020_update4_cluster_edition/rpm/
+enabled=1
+gpgcheck=0

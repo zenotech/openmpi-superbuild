@@ -1,0 +1,7 @@
+#!/bin/bash
+
+#source /opt/rh/devtoolset-8/enable
+#source /opt/rh/rh-git218/enable
+source /opt/intel/compilers_and_libraries_2020.4.304/linux/bin/compilervars.sh intel64
+#export PATH=$PATH:/opt/nodejs12/bin
+exec $*
