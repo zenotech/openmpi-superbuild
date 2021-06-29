@@ -30,6 +30,11 @@ Install driver as per
 https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/efa-start.html
 Use this install option for gpu nodes
 sudo ./efa_installer.sh -y --enable-gdr
+https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/efa-start-nccl.html
+https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ec2-ug.pdf#efa-start-nccl
+https://docs.aws.amazon.com/dlami/latest/devguide/tutorial-efa-using.html
+https://github.com/awslabs/libfabric-ci-scripts/blob/master/run-nccl-tests.sh
+https://github.com/amzn/amzn-drivers/blob/master/kernel/linux/efa/README
 
 ## UCX Notes
 
