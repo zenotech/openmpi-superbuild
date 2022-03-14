@@ -1,5 +1,5 @@
 # syntax=docker/dockerfile:experimental
-FROM amazonlinux:2.0.20210219.0 as intelinstall
+FROM amazonlinux:latest as intelinstall
 
 RUN --mount=type=cache,target=/var/cache/yum yum -y install tar gzip gunzip yum-utils
 
@@ -13,7 +13,7 @@ RUN yum clean metadata && yum -y install intel-parallel-studio-xe-icc intel-para
 RUN --mount=type=cache,target=/var/cache/yum yum -y install patch
 
 
-FROM amazonlinux:2.0.20210219.0 as gccbuild
+FROM amazonlinux:latest as gccbuild
 
 LABEL maintainer zenotech
 
@@ -37,7 +37,7 @@ RUN wget -O /usr/local/bin/dumb-init https://github.com/Yelp/dumb-init/releases/
 
 RUN --mount=type=cache,target=/var/cache/yum yum -y install tar gzip util-linux
 
-RUN curl -O https://efa-installer.amazonaws.com/aws-efa-installer-1.11.2.tar.gz && tar xvf aws-efa-installer-1.11.2.tar.gz && cd aws-efa-installer && ./efa_installer.sh -y --enable-gdr --minimal 
+RUN curl -O https://efa-installer.amazonaws.com/aws-efa-installer-1.15.0.tar.gz && tar xvf aws-efa-installer-1.15.0.tar.gz && cd aws-efa-installer && ./efa_installer.sh -y --enable-gdr --minimal 
 
 
 WORKDIR /home/dev
@@ -74,5 +74,5 @@ COPY enable_gcc /usr/local/
 # Make sure the above SCLs are already enabled
 ENTRYPOINT ["/usr/local/bin/dumb-init", "--", "/usr/local/enable_gcc"]
 USER root
-RUN --mount=type=cache,target=/var/cache/yum yum -y install openmpi3-devel
+# RUN --mount=type=cache,target=/var/cache/yum yum -y install openmpi3-devel
 USER dev
