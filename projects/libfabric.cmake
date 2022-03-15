@@ -16,7 +16,7 @@ superbuild_add_project(
   libfabric
   DEPENDS_OPTIONAL ucx psm2 
   BUILD_IN_SOURCE 1
-  PATCH_COMMAND "" 
+  PATCH_COMMAND <SOURCE_DIR>/autogen.sh 
   CONFIGURE_COMMAND <SOURCE_DIR>/configure 
                     --verbose
                     --prefix=<INSTALL_DIR> 
