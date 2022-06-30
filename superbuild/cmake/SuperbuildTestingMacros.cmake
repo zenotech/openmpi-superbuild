@@ -32,6 +32,7 @@ function (superbuild_add_extract_test name glob_prefix generator output)
   set(_NSIS_test_glob "${glob_prefix}*.exe")
   set(_DragNDrop_test_glob "${glob_prefix}*.dmg")
   set(_TGZ_test_glob "${glob_prefix}*.tar.gz")
+  set(_STGZ_test_glob "${glob_prefix}*.sh")
 
   if (NOT DEFINED _${generator}_test_glob)
     message(FATAL_ERROR

@@ -1,5 +1,9 @@
-if (CMAKE_MINIMUM_REQUIRED_VERSION VERSION_LESS "3.0")
-  cmake_minimum_required(VERSION 3.0)
+if (CMAKE_MINIMUM_REQUIRED_VERSION VERSION_LESS "3.18")
+  cmake_minimum_required(VERSION 3.18 FATAL_ERROR)
+endif ()
+
+if (POLICY CMP0114)
+  cmake_policy(SET CMP0114 NEW)
 endif ()
 
 if (CMAKE_SOURCE_DIR STREQUAL CMAKE_CURRENT_SOURCE_DIR)
@@ -43,12 +47,18 @@ superbuild_detect_64bit_target()
 # Setup shared library defaults.  If explicitly specified somehow, then default
 # to that.  Otherwise base the default on whether or not shared libs are even
 # supported.
-get_property(superbuild_shared_libs_supported
-  GLOBAL PROPERTY TARGET_SUPPORTS_SHARED_LIBS)
-cmake_dependent_option(BUILD_SHARED_LIBS
-  "Build shared libraries (so/dylib/dll)." "${superbuild_shared_libs_supported}"
-  "superbuild_shared_libs_supported" OFF)
-mark_as_advanced(BUILD_SHARED_LIBS)
+if (NOT _superbuild_no_static_everywhere)
+  if (NOT DEFINED BUILD_SHARED_LIBS)
+    get_property(superbuild_shared_libs_supported
+      GLOBAL PROPERTY TARGET_SUPPORTS_SHARED_LIBS)
+    cmake_dependent_option(BUILD_SHARED_LIBS
+      "Build shared libraries (so/dylib/dll)." "${superbuild_shared_libs_supported}"
+      "superbuild_shared_libs_supported" OFF)
+    mark_as_advanced(BUILD_SHARED_LIBS)
+  endif ()
+else ()
+  set(BUILD_SHARED_LIBS ON)
+endif ()
 
 # Setup PIC defaults.
 cmake_dependent_option(CMAKE_POSITION_INDEPENDENT_CODE
@@ -58,8 +68,10 @@ mark_as_advanced(CMAKE_POSITION_INDEPENDENT_CODE)
 
 # Verify shared libs and PIC compatibility
 if(BUILD_SHARED_LIBS AND NOT CMAKE_POSITION_INDEPENDENT_CODE)
-  message(WARNING "Forcing CMAKE_POSITION_INDEPENDENT_CODE to be ON as required by BUILD_SHARED_LIBS.")
-  set_property(CACHE CMAKE_POSITION_INDEPENDENT_CODE PROPERTY VALUE ON)
+  if (NOT _superbuild_no_static_everywhere)
+    message(WARNING "Forcing CMAKE_POSITION_INDEPENDENT_CODE to be ON as required by BUILD_SHARED_LIBS.")
+  endif ()
+  set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 endif()
 
 #-----------------------------------------------------------------------------
@@ -87,12 +99,13 @@ endif()
 superbuild_setup_flags()
 
 # merge in default/user-specified CMake flags.
-set(superbuild_ld_flags "${CMAKE_SHARED_LINKER_FLAGS} ${superbuild_ld_flags}")
-set(superbuild_cpp_flags "${CMAKE_CXX_FLAGS} ${superbuild_cpp_flags}")
-set(superbuild_cxx_flags "${CMAKE_CXX_FLAGS} ${superbuild_cxx_flags}")
-set(superbuild_c_flags "${CMAKE_C_FLAGS} ${superbuild_c_flags}")
+string(PREPEND superbuild_ld_flags "${CMAKE_SHARED_LINKER_FLAGS} ")
+string(PREPEND superbuild_cpp_flags "${CMAKE_CXX_FLAGS} ")
+string(PREPEND superbuild_cxx_flags "${CMAKE_CXX_FLAGS} ")
+string(PREPEND superbuild_c_flags "${CMAKE_C_FLAGS} ")
+string(PREPEND superbuild_f_flags "${CMAKE_Fortran_FLAGS} ")
 
-foreach (var IN ITEMS ld_flags cpp_flags cxx_flags c_flags)
+foreach (var IN ITEMS ld_flags cpp_flags cxx_flags c_flags f_flags)
   string(STRIP "${superbuild_${var}}" "superbuild_${var}")
 endforeach ()
 
@@ -134,9 +147,19 @@ if (COMMAND superbuild_setup_variables)
   superbuild_setup_variables()
 endif ()
 
+if (superbuild_package_roots)
+  include(SuperbuildPackageMacros)
+
+  _superbuild_package_discover()
+  _superbuild_package_select()
+endif ()
+
 include(SuperbuildMacros)
+include(SuperbuildPluginMacros)
 
 superbuild_find_projects(superbuild_projects)
+list(APPEND superbuild_projects ${superbuild_extra_package_projects})
+
 if (NOT superbuild_projects)
   message(FATAL_ERROR "No projects are configured!")
 endif ()
@@ -155,9 +178,20 @@ endif ()
 if (COMMAND superbuild_add_packaging)
   include(SuperbuildPackageMacros)
 
+  set(superbuild_export_variables)
   if (superbuild_python_executable)
-    set(superbuild_export_variables
+    list(APPEND superbuild_export_variables
       superbuild_python_executable)
+  endif ()
+
+  if (python_version)
+    list(APPEND superbuild_export_variables
+      python_version)
+  endif ()
+
+  if (superbuild_python_version)
+    list(APPEND superbuild_export_variables
+      superbuild_python_version)
   endif ()
 
   superbuild_add_packaging()
@@ -211,4 +245,9 @@ if (BUILD_TESTING)
     DIRECTORY "${CMAKE_CURRENT_LIST_DIR}"
     PROPERTY
       TEST_INCLUDE_FILE "${CMAKE_CURRENT_BINARY_DIR}/superbuild_testing_trampoline.cmake")
+endif ()
+
+if (python3_enabled)
+  include(python3.functions)
+  superbuild_python_write_reqs("${CMAKE_BINARY_DIR}/requirements.txt")
 endif ()

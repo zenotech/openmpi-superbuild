@@ -8,8 +8,9 @@ superbuild. Some may be of use to corner-case project builds.
 include("SuperbuildUtils-apple")
 include("SuperbuildUtils-unix")
 
+get_property(multi_config GLOBAL PROPERTY GENERATOR_IS_MULTI_CONFIG)
 # TODO: In 3.9.0, use the GENERATOR_IS_MULTI_CONFIG global property.
-if (NOT CMAKE_CONFIGURATION_TYPES)
+if (NOT multi_config)
   set(_superbuild_build_type_force)
   if (NOT CMAKE_BUILD_TYPE)
     set(_superbuild_build_type_force FORCE)
@@ -39,10 +40,9 @@ if (NOT CMAKE_CONFIGURATION_TYPES)
   get_property(build_type_options
     CACHE     CMAKE_BUILD_TYPE
     PROPERTY  STRINGS)
-  list(FIND build_type_options "${CMAKE_BUILD_TYPE}" idx)
-  if (idx EQUAL "-1")
+  if (NOT CMAKE_BUILD_TYPE IN_LIST build_type_options)
     string(REPLACE ";" ", " build_type_options "${build_type_options}")
-    message(FATAL_ERROR "CMAKE_BUILD_TYPE must be one of: ${build_type_options}.")
+    message(FATAL_ERROR "CMAKE_BUILD_TYPE must be one of: ${build_type_options} (found ${CMAKE_BUILD_TYPE}).")
   endif ()
 
   if (CMAKE_BUILD_TYPE STREQUAL "Debug")
@@ -64,10 +64,7 @@ endif ()
 #[==[.md INTERNAL
 # 64-bit support
 
-Some projects need to know if a build is 32-bit or 64-bit. This function sets
-`superbuild_is_64bit`.
-
-In the future, 32-bit support may be removed completely.
+This functiond detects 32-bit targets and errors if it occurs.
 #]==]
 function (superbuild_detect_64bit_target)
   if (CMAKE_CROSSCOMPILING)
@@ -80,20 +77,19 @@ function (superbuild_detect_64bit_target)
   check_type_size(void* void_ptr_size
     BUILTIN_TYPES_ONLY)
   if (void_ptr_size EQUAL 8)
-    set(superbuild_is_64bit TRUE
-      PARENT_SCOPE)
+    # OK
   elseif (void_ptr_size EQUAL 4)
-    # XXX: Error out here? Is there a reason to still support 32-bit?
-    set(superbuild_is_64bit FALSE
-      PARENT_SCOPE)
+    message(FATAL_ERROR
+      "32-bit targets are not supported.")
   else ()
     if (WIN32)
       set(extra_message "Are you in a Visual Studio command prompt?")
     else ()
       set(extra_message "Do you have working compilers?")
     endif ()
-    message(FATAL_ERROR "Failed to determine whether the target architecture "
-                        "is 32bit or 64bit. ${extra_message}")
+    message(FATAL_ERROR
+      "Failed to determine whether the target architecture is 32bit or 64bit. "
+      "${extra_message}")
   endif ()
 endfunction ()
 
@@ -139,10 +135,12 @@ function (superbuild_setup_flags)
   set(superbuild_cpp_flags "$ENV{CPPFLAGS} ${superbuild_extra_cpp_flags}")
   set(superbuild_cxx_flags "$ENV{CXXFLAGS} -fPIC ${superbuild_extra_cxx_flags}")
   set(superbuild_c_flags "$ENV{CFLAGS} -fPIC ${superbuild_extra_c_flags}")
+  set(superbuild_f_flags "$ENV{FFLAGS} -fPIC ${superbuild_extra_f_flags}")
+  set(superbuild_ld_flags "$ENV{LDFLAGS} ${superbuild_extra_ld_flags}")
 
   superbuild_osx_add_version_flags()
 
-  foreach (var IN ITEMS cpp_flags cxx_flags c_flags)
+  foreach (var IN ITEMS cpp_flags cxx_flags c_flags f_flags ld_flags)
     set("superbuild_${var}"
       "${superbuild_${var}}"
       PARENT_SCOPE)

@@ -46,6 +46,9 @@ include(CMakeParseArguments)
 # anything else can use it that needs it.
 set(_superbuild_list_separator "-+-")
 
+option(SUPERBUILD_DEBUG_CONFIGURE_STEPS "Dump logs of the configure steps" OFF)
+mark_as_advanced(SUPERBUILD_DEBUG_CONFIGURE_STEPS)
+
 #[==[.md
 # Adding a project to the superbuild
 
@@ -67,7 +70,8 @@ following extensions:
     may be specified to indicate that this platform *must* use the system's
     version rather than a custom built one. Usually only used in
     platform-specific files.
-  - `DEFAULT_ON` If present, the project will default to be built.
+  - `DEFAULT_ON` If present, the project will default to be built. May be set
+    externally using the `_superbuild_default_${NAME}` variable.
   - `DEVELOPER_MODE` If present, the project will offer an option to build it
     in "developer" mode. Developer mode enables and builds all dependent
     projects, but skips the project itself. Instead, a file named
@@ -82,6 +86,9 @@ following extensions:
   - `SELECTABLE` If present, this project's `ENABLE_` option will be visible
     (and all non-selectable projects will be hidden). May be set externally
     with the `_superbuild_${NAME}_selectable` flag.
+  - `BUILD_SHARED_LIBS_INDEPENDENT` If present, an option to change the build
+    shared flags setting for the project will be exposed. By default, the value
+    of `<same>` is used to match the superbuild's configuration.
   - `HELP_STRING`
     Set the description string for the option to enable the project.
   - `DEPENDS_OPTIONAL <project>...`
@@ -90,7 +97,7 @@ following extensions:
   - `PROCESS_ENVIRONMENT <var> <value>...`
     Sets environment variables for the configure, build, and install steps.
     Some are "magic" and are prepended to the current value (namely ``PATH``,
-    ``LD_LIBRARY_PATH`` (Linux), and ``DYLD_LIBRARY_PATH`` (OS X).
+    ``LD_LIBRARY_PATH`` (Linux), and ``DYLD_LIBRARY_PATH`` (macOS)).
 
 Projects which are depended on may declare that they have CMake variables and
 flags which must be set in dependent projects (e.g., a Python project would set
@@ -101,20 +108,22 @@ function (superbuild_add_project name)
 
   set(can_use_system FALSE)
   set(must_use_system FALSE)
-  set(default "${_superbuild_default_${name}}")
   set(allow_developer_mode FALSE)
   set(debuggable FALSE)
+  set(default OFF)
   set(selectable FALSE)
+  set(build_shared_libs_independent FALSE)
   set(help_string)
   set(depends)
   set(optional_depends)
-
-  if (DEFINED "_superbuild_${name}_selectable")
-    set(selectable "${_superbuild_${name}_selectable}")
-  endif ()
+  set(process_environment)
 
   set(ep_arguments)
   set(grab)
+
+  _ep_get_add_keywords(keywords)
+  list(APPEND keywords
+    PROCESS_ENVIRONMENT)
 
   foreach (arg IN LISTS ARGN)
     if (arg STREQUAL "CAN_USE_SYSTEM")
@@ -141,7 +150,7 @@ function (superbuild_add_project name)
       set(grab depends)
     elseif (arg STREQUAL "DEPENDS_OPTIONAL")
       set(grab optional_depends)
-    elseif (arg MATCHES "${_ep_keywords__superbuild_ExternalProject_add}")
+    elseif (arg IN_LIST keywords)
       set(grab ep_arguments)
       list(APPEND ep_arguments
         "${arg}")
@@ -150,6 +159,14 @@ function (superbuild_add_project name)
         "${arg}")
     endif ()
   endforeach ()
+
+  # Allow projects to override default values for args
+  if (DEFINED "_superbuild_default_${name}")
+    set(default "${_superbuild_default_${name}}")
+  endif ()
+  if (DEFINED "_superbuild_${name}_selectable")
+    set(selectable "${_superbuild_${name}_selectable}")
+  endif ()
 
   # Allow projects to override the help string specified in the project file.
   if (DEFINED "_superbuild_help_string_${name}")
@@ -178,15 +195,13 @@ function (superbuild_add_project name)
     set(missing_deps)
     set(missing_deps_optional)
     foreach (dep IN LISTS depends)
-      list(FIND all_projects "${dep}" idx)
-      if (idx EQUAL -1)
+      if (NOT dep IN_LIST all_projects)
         list(APPEND missing_deps
           "${dep}")
       endif ()
     endforeach ()
     foreach (dep IN LISTS optional_depends)
-      list(FIND all_projects "${dep}" idx)
-      if (idx EQUAL -1)
+      if (NOT dep IN_LIST all_projects)
         list(APPEND missing_deps_optional
           "${dep}")
       endif ()
@@ -214,7 +229,10 @@ function (superbuild_add_project name)
     option("ENABLE_${name}" "${help_string}" "${default}")
     # Set the TYPE because it is overrided to INTERNAL if it is required by
     # dependencies later.
-    set_property(CACHE "ENABLE_${name}" PROPERTY TYPE BOOL)
+    get_property(cache_var_exists CACHE "ENABLE_${name}" PROPERTY TYPE SET)
+    if (cache_var_exists)
+      set_property(CACHE "ENABLE_${name}" PROPERTY TYPE BOOL)
+    endif ()
     set_property(GLOBAL APPEND
       PROPERTY
         superbuild_projects "${name}")
@@ -258,6 +276,12 @@ function (superbuild_add_project name)
           "${project}_selectable" TRUE)
     endif ()
 
+    if (build_shared_libs_independent)
+      set_property(GLOBAL
+        PROPERTY
+          "${name}_build_shared_libs_independent" TRUE)
+    endif ()
+
     set_property(GLOBAL
       PROPERTY
         "${name}_depends" ${depends})
@@ -288,6 +312,10 @@ function (superbuild_add_dummy_project _name)
       "${_name}_is_dummy" TRUE)
 endfunction ()
 
+option(SUPERBUILD_SKIP_PYTHON_PROJECTS
+  "When ON, Python projects will not be built but only result in generation of a requirements.txt file" OFF)
+mark_as_advanced(SUPERBUILD_SKIP_PYTHON_PROJECTS)
+
 #[==[.md
 ## Python projects
 
@@ -303,41 +331,123 @@ libraries.
 superbuild_add_project_python(<NAME> <ARG>...)
 ```
 
-Same as `superbuild_add_project`, but sets `PYTHONPATH` and build commands to
-work properly out of the box.
+Same as `superbuild_add_project`, but sets build commands to
+work properly out of the box for setuputils.
 #]==]
 macro (superbuild_add_project_python _name)
-  if (WIN32)
-    set(_superbuild_python_path <INSTALL_DIR>/bin/Lib/site-packages)
-    set(_superbuild_python_args
-      "--prefix=bin")
-  else ()
-    set(_superbuild_python_path <INSTALL_DIR>/lib/python2.7/site-packages)
-    set(_superbuild_python_args
-      "--single-version-externally-managed"
-      "--prefix=")
+  cmake_parse_arguments(_superbuild_python_project
+    ""
+    "PACKAGE"
+    ""
+    ${ARGN})
+
+  if (NOT DEFINED _superbuild_python_project_PACKAGE)
+    message(FATAL_ERROR
+      "Python requires that projects have a package specified")
   endif ()
 
-  superbuild_add_project("${_name}"
-    BUILD_IN_SOURCE 1
-    DEPENDS python ${ARGN}
-    CONFIGURE_COMMAND
-      ""
-    BUILD_COMMAND
-      "${superbuild_python_executable}"
-        setup.py
-        build
-        ${${_name}_python_build_args}
-    INSTALL_COMMAND
-      "${superbuild_python_executable}"
-        setup.py
-        install
-        --skip-build
-        --root=<INSTALL_DIR>
-        ${_superbuild_python_args}
-        ${${_name}_python_install_args}
-    PROCESS_ENVIRONMENT
-      PYTHONPATH ${_superbuild_python_path})
+  if (SUPERBUILD_SKIP_PYTHON_PROJECTS)
+    superbuild_require_python_package("${_name}" "${_superbuild_python_project_PACKAGE}")
+  else ()
+    if (WIN32)
+      set(_superbuild_python_args
+        "--prefix=Python")
+    else ()
+      set(_superbuild_python_args
+        "--single-version-externally-managed"
+        "--install-lib=lib/python${superbuild_python_version}/site-packages"
+        "--prefix=")
+    endif ()
+
+    set(environment)
+    if (APPLE AND CMAKE_OSX_DEPLOYMENT_TARGET)
+      list(APPEND environment
+        MACOSX_DEPLOYMENT_TARGET "${CMAKE_OSX_DEPLOYMENT_TARGET}")
+    endif ()
+
+    superbuild_add_project("${_name}"
+      BUILD_IN_SOURCE 1
+      DEPENDS python3 ${_superbuild_python_project_UNPARSED_ARGUMENTS}
+      PROCESS_ENVIRONMENT
+        ${environment}
+      CONFIGURE_COMMAND
+        ""
+      BUILD_COMMAND
+        "${superbuild_python_executable}"
+          setup.py
+          build
+          ${${_name}_python_build_args}
+      INSTALL_COMMAND
+        "${superbuild_python_executable}"
+          setup.py
+          install
+          --root=<INSTALL_DIR>
+          ${_superbuild_python_args}
+          ${${_name}_python_install_args})
+  endif ()
+endmacro ()
+
+function (superbuild_require_python_package _name package)
+  if (superbuild_build_phase)
+    set_property(GLOBAL APPEND
+      PROPERTY
+        _superbuild_python_packages "${package}")
+  endif ()
+
+  superbuild_add_dummy_project("${_name}"
+    "${ARGN}")
+endfunction ()
+
+#[==[.md
+### `pyproject.toml`
+
+```
+superbuild_add_project_python_toml(<NAME> <ARG>...)
+```
+
+Same as `superbuild_add_project`, but sets build commands to
+work properly out of the box for `pyproject.toml`.
+#]==]
+macro (superbuild_add_project_python_toml _name)
+  cmake_parse_arguments(_superbuild_python_project
+    ""
+    "PACKAGE"
+    ""
+    ${ARGN})
+
+  if (NOT DEFINED _superbuild_python_project_PACKAGE)
+    message(FATAL_ERROR
+      "Python requires that projects have a package specified")
+  endif ()
+
+  if (SUPERBUILD_SKIP_PYTHON_PROJECTS)
+    superbuild_require_python_package("${_name}" "${_superbuild_python_project_PACKAGE}")
+  else ()
+    if (WIN32)
+      set(_superbuild_python_args
+        "--prefix=Python")
+    else ()
+      set(_superbuild_python_args
+        "--prefix=.")
+    endif ()
+
+    superbuild_add_project("${_name}"
+      BUILD_IN_SOURCE 1
+      DEPENDS python3 ${_superbuild_python_project_UNPARSED_ARGUMENTS}
+      CONFIGURE_COMMAND
+        ""
+      BUILD_COMMAND
+        ""
+      INSTALL_COMMAND
+        ${superbuild_python_pip}
+          install
+          --no-index
+          --no-deps
+          --root=<INSTALL_DIR>
+          ${_superbuild_python_args}
+          ${${_name}_python_install_args}
+          .)
+  endif ()
 endmacro ()
 
 #[==[.md
@@ -357,10 +467,19 @@ macro (superbuild_add_project_python_wheel _name)
       "No `pip` available?")
   endif ()
 
+  if (WIN32)
+    set(_superbuild_python_args
+      --root=<INSTALL_DIR>
+      "--prefix=Python")
+  else ()
+    set(_superbuild_python_args
+      "--prefix=<INSTALL_DIR>")
+  endif ()
+
   superbuild_add_project("${_name}"
     BUILD_IN_SOURCE 1
     DOWNLOAD_NO_EXTRACT 1
-    DEPENDS python ${ARGN}
+    DEPENDS python3 ${ARGN}
     CONFIGURE_COMMAND
       ""
     BUILD_COMMAND
@@ -369,7 +488,8 @@ macro (superbuild_add_project_python_wheel _name)
       ${superbuild_python_pip}
         install
         --no-index
-        --prefix=<INSTALL_DIR>
+        --no-deps
+        ${_superbuild_python_args}
         "<DOWNLOADED_FILE>")
 endmacro ()
 
@@ -417,7 +537,7 @@ function (superbuild_apply_patch _name _patch _comment)
     RESULT_VARIABLE res
     OUTPUT_VARIABLE out
     ERROR_VARIABLE  err
-    WORKING_DIRECTORY "${CMAKE_BINARY_DIRECTORY}"
+    WORKING_DIRECTORY "${CMAKE_BINARY_DIR}"
     OUTPUT_STRIP_TRAILING_WHITESPACE)
   if (res AND NOT res EQUAL 128)
     message(FATAL_ERROR "Failed to determine if the build tree is inside of a git repository.")
@@ -430,14 +550,14 @@ function (superbuild_apply_patch _name _patch _comment)
       RESULT_VARIABLE res
       OUTPUT_VARIABLE out
       ERROR_VARIABLE  err
-      WORKING_DIRECTORY "${CMAKE_BINARY_DIRECTORY}"
+      WORKING_DIRECTORY "${CMAKE_BINARY_DIR}"
       OUTPUT_STRIP_TRAILING_WHITESPACE)
     if (res)
       message(WARNING
         "Failed to detect the top-level of the git repository: ${err}.")
       set(out "<unknown>")
     endif ()
-    message(FATAL_ERROR
+    message(WARNING
       "The build tree appears to be inside of the git repository located at "
       "${out}. This interferes with the way the superbuild applies patches to "
       "projects and is not supported. Please relocate the build tree to a "
@@ -456,6 +576,12 @@ function (superbuild_apply_patch _name _patch _comment)
     PROPERTY
       "${current_project}_patch_steps")
 
+  set(_independent)
+  if (NOT CMAKE_VERSION VERSION_LESS "3.19")
+    list(APPEND _independent
+      INDEPENDENT 1)
+  endif ()
+
   superbuild_project_add_step("${_name}-patch-${_patch}"
     COMMAND   "${GIT_EXECUTABLE}"
               apply
@@ -465,13 +591,13 @@ function (superbuild_apply_patch _name _patch _comment)
               "${CMAKE_CURRENT_LIST_DIR}/patches/${_name}-${_patch}.patch"
     DEPENDEES patch ${patch-steps}
     DEPENDERS configure
+    ${_independent}
     COMMENT   "${_comment}"
     WORKING_DIRECTORY <SOURCE_DIR>)
 
   set_property(GLOBAL APPEND
     PROPERTY
       "${current_project}_patch_steps" "${_name}-patch-${_patch}")
-
 endfunction ()
 
 #[==[.md
@@ -549,6 +675,7 @@ Valid values for `KEY` are:
 
   - `cxx_flags`: add flags for C++ compilation.
   - `c_flags`: add flags for C compilation.
+  - `f_flags`: add flags for Fortran compilation.
   - `cpp_flags`: add flags C and C++ preprocessors.
   - `ld_flags`: add flags for linkers.
 #]==]
@@ -561,10 +688,11 @@ function (superbuild_append_flags key value)
 
   if (NOT "x${key}" STREQUAL "xcxx_flags" AND
       NOT "x${key}" STREQUAL "xc_flags" AND
+      NOT "x${key}" STREQUAL "xf_flags" AND
       NOT "x${key}" STREQUAL "xcpp_flags" AND
       NOT "x${key}" STREQUAL "xld_flags")
     message(AUTHOR_WARNING
-      "Currently, only cxx_flags, c_flags, cpp_flags, and ld_flags are supported.")
+      "Currently, only cxx_flags, c_flags, f_flags, cpp_flags, and ld_flags are supported.")
     return ()
   endif ()
 
@@ -732,8 +860,11 @@ function (superbuild_process_dependencies)
     else ()
       set(advanced FALSE)
     endif ()
-    set_property(CACHE "ENABLE_${project}"
-      PROPERTY ADVANCED "${advanced}")
+    get_property(cache_var_exists CACHE "ENABLE_${project}" PROPERTY ADVANCED SET)
+    if (cache_var_exists)
+      set_property(CACHE "ENABLE_${project}"
+        PROPERTY ADVANCED "${advanced}")
+    endif ()
 
     if (ENABLE_${project})
       list(APPEND enabled_projects "${project}")
@@ -786,7 +917,10 @@ function (superbuild_process_dependencies)
     else ()
       string(REPLACE ";" ", " required_by "${${project}_needed_by}")
       message(STATUS "Enabling ${project} for: ${required_by}")
-      set_property(CACHE "ENABLE_${project}" PROPERTY TYPE INTERNAL)
+      get_property(cache_var_exists CACHE "ENABLE_${project}" PROPERTY TYPE SET)
+      if (cache_var_exists)
+        set_property(CACHE "ENABLE_${project}" PROPERTY TYPE INTERNAL)
+      endif ()
     endif ()
   endforeach ()
 
@@ -815,6 +949,14 @@ function (superbuild_process_dependencies)
 
     set("${project}_built_by_superbuild" TRUE)
     if (USE_SYSTEM_${project})
+      set("${project}_built_by_superbuild" FALSE)
+    endif ()
+
+    # dummy projects are similar to system, in that they are not built by
+    # superbuild and hence we mark them as such.
+    get_property(is_dummy GLOBAL
+      PROPERTY "${project}_is_dummy")
+    if (is_dummy)
       set("${project}_built_by_superbuild" FALSE)
     endif ()
 
@@ -851,18 +993,33 @@ function (superbuild_process_dependencies)
       get_property(build_type_options
         CACHE     "CMAKE_BUILD_TYPE_${project}"
         PROPERTY  STRINGS)
-      list(FIND build_type_options "${CMAKE_BUILD_TYPE_${project}}" idx)
-      if (idx EQUAL "-1")
+      if (NOT CMAKE_BUILD_TYPE_${project} IN_LIST build_type_options)
         string(REPLACE ";" ", " build_type_options "${build_type_options}")
         message(FATAL_ERROR "CMAKE_BUILD_TYPE_${project} must be one of: ${build_type_options}.")
+      endif ()
+    endif ()
+
+    get_property(build_shared_libs_independent GLOBAL
+      PROPERTY "${project}_build_shared_libs_independent" SET)
+    if (build_shared_libs_independent)
+      set("BUILD_SHARED_LIBS_${project}" "<same>"
+        CACHE STRING "The build type for the ${project} project.")
+      set_property(CACHE "BUILD_SHARED_LIBS_${project}"
+        PROPERTY
+          STRINGS "<same>;ON;OFF")
+
+      get_property(build_shared_libs_options
+        CACHE     "BUILD_SHARED_LIBS_${project}"
+        PROPERTY  STRINGS)
+      if (NOT BUILD_SHARED_LIBS_${project} IN_LIST build_shared_libs_options)
+        string(REPLACE ";" ", " build_shared_libs_options "${build_shared_libs_options}")
+        message(FATAL_ERROR "BUILD_SHARED_LIBS_${project} must be one of: ${build_shared_libs_options}.")
       endif ()
     endif ()
 
     set(current_project "${project}")
 
     set(is_buildable_project FALSE)
-    get_property(is_dummy GLOBAL
-      PROPERTY "${project}_is_dummy")
     if (can_use_system AND USE_SYSTEM_${project})
       # Project from the system environment.
 
@@ -892,6 +1049,12 @@ function (superbuild_process_dependencies)
     elseif (is_dummy)
       # This project isn't built, just used as a graph node to represent a
       # group of dependencies.
+
+      # append to the system_projects list so we treat these similar to
+      # externally built projects.
+      list(APPEND system_projects
+        "${project}")
+
       include("${project}")
       _superbuild_add_dummy_project_internal("${project}")
     else ()
@@ -946,14 +1109,19 @@ function (_superbuild_add_dummy_project_internal name)
     UPDATE_COMMAND    ""
     CONFIGURE_COMMAND ""
     BUILD_COMMAND     ""
-    INSTALL_COMMAND   "")
+    INSTALL_COMMAND   ""
+    LIST_SEPARATOR    "${_superbuild_list_separator}")
 endfunction ()
 
 # Implementation of building an actual project.
 function (_superbuild_add_project_internal name)
   set(cmake_params)
-  # Pass down C and CXX flags from this project.
+  # Pass down C, CXX, and Fortran flags from this project.
   foreach (flag IN ITEMS
+      CMAKE_C_COMPILER_LAUNCHER
+      CMAKE_CXX_COMPILER_LAUNCHER
+      CMAKE_Fortran_COMPILER_LAUNCHER
+
       CMAKE_C_FLAGS_DEBUG
       CMAKE_C_FLAGS_MINSIZEREL
       CMAKE_C_FLAGS_RELEASE
@@ -961,7 +1129,11 @@ function (_superbuild_add_project_internal name)
       CMAKE_CXX_FLAGS_DEBUG
       CMAKE_CXX_FLAGS_MINSIZEREL
       CMAKE_CXX_FLAGS_RELEASE
-      CMAKE_CXX_FLAGS_RELWITHDEBINFO)
+      CMAKE_CXX_FLAGS_RELWITHDEBINFO
+      CMAKE_Fortran_FLAGS_DEBUG
+      CMAKE_Fortran_FLAGS_MINSIZEREL
+      CMAKE_Fortran_FLAGS_RELEASE
+      CMAKE_Fortran_FLAGS_RELWITHDEBINFO)
     if (${flag})
       list(APPEND cmake_params "-D${flag}:STRING=${${flag}}")
     endif ()
@@ -975,8 +1147,15 @@ function (_superbuild_add_project_internal name)
     list(APPEND cmake_params "-DCMAKE_BUILD_TYPE:STRING=${CMAKE_BUILD_TYPE}")
     string(TOUPPER "${CMAKE_BUILD_TYPE}" project_build_type)
   endif ()
-  set(project_c_flags_buildtype "${CMAKE_C_FLAGS_${project_build_type}}")
-  set(project_cxx_flags_buildtype "${CMAKE_CXX_FLAGS_${project_build_type}}")
+
+  # Handle the BUILD_SHARED_LIBS_INDEPENDENT flag setting.
+  if (build_shared_libs_independent)
+    if (NOT BUILD_SHARED_LIBS_${name} STREQUAL "<same>")
+      list(APPEND cmake_params "-DBUILD_SHARED_LIBS:BOOL=${BUILD_SHARED_LIBS_${name}}")
+    else ()
+      list(APPEND cmake_params "-DBUILD_SHARED_LIBS:BOOL=${BUILD_SHARED_LIBS}")
+    endif ()
+  endif ()
 
   # Set SDK and target version flags.
   superbuild_osx_pass_version_flags(apple_flags)
@@ -987,9 +1166,15 @@ function (_superbuild_add_project_internal name)
     ${apple_flags}
     ${cmake_dep_args})
 
+  if (SUPERBUILD_DEBUG_CONFIGURE_STEPS)
+    list(APPEND cmake_params
+      --trace-expand)
+  endif ()
+
   # Get extra flags added using superbuild_append_flags(), if any.
   set(extra_vars
     c_flags
+    f_flags
     cxx_flags
     cpp_flags
     ld_flags)
@@ -1046,9 +1231,10 @@ function (_superbuild_add_project_internal name)
   if (NOT MSVC)
     list(APPEND build_env
       LDFLAGS "${project_ld_flags}"
-      CPPFLAGS "${project_cpp_flags} ${project_cxx_flags_buildtype}"
-      CXXFLAGS "${project_cxx_flags} ${project_cxx_flags_buildtype}"
-      CFLAGS "${project_c_flags} ${project_c_flags_buildtype}")
+      CPPFLAGS "${project_cpp_flags}"
+      CXXFLAGS "${project_cxx_flags}"
+      CFLAGS "${project_c_flags}"
+      FFLAGS "${project_f_flags}")
   endif ()
 
   list(INSERT extra_paths 0
@@ -1056,9 +1242,21 @@ function (_superbuild_add_project_internal name)
   list(REMOVE_DUPLICATES extra_paths)
 
   if (WIN32)
+    # With Python3 on Windows, Python in installed under a different root.
+    set(superbuild_python_path <INSTALL_DIR>/Python/Lib/site-packages)
+  else ()
+    set(superbuild_python_path <INSTALL_DIR>/lib/python${superbuild_python_version}/site-packages)
+  endif ()
+  _superbuild_make_path_var(superbuild_python_path
+    "$ENV{PYTHONPATH}"
+    ${superbuild_python_path})
+
+  if (WIN32)
     string(REPLACE ";" "${_superbuild_list_separator}" extra_paths "${extra_paths}")
+    string(REPLACE ";" "${_superbuild_list_separator}" superbuild_python_path "${superbuild_python_path}")
   else ()
     string(REPLACE ";" ":" extra_paths "${extra_paths}")
+    string(REPLACE ";" ":" superbuild_python_path "${superbuild_python_path}")
   endif ()
   list(APPEND build_env
     PATH "${extra_paths}")
@@ -1075,7 +1273,8 @@ function (_superbuild_add_project_internal name)
       ${ld_library_path_argument})
   endif ()
   list(APPEND build_env
-    PKG_CONFIG_PATH "${superbuild_pkg_config_path}")
+    PKG_CONFIG_PATH "${superbuild_pkg_config_path}"
+    PYTHONPATH "${superbuild_python_path}")
 
   set(binary_dir BINARY_DIR "${name}/build")
   list(FIND ARGN "BUILD_IN_SOURCE" in_source)
@@ -1095,12 +1294,24 @@ function (_superbuild_add_project_internal name)
       GIT_PROGRESS 1)
   endif ()
 
+  # prepare any separators in supplied environment variable
+  set(converted_cmake_prefix_path "")
+  foreach (_path IN LISTS CMAKE_PREFIX_PATH)
+    string(APPEND converted_cmake_prefix_path "${_superbuild_list_separator}${_path}")
+  endforeach()
+  # now ensure superbuild's special directory comes first
   set(prepended_cmake_prefix_path
-    "${superbuild_prefix_path}${_superbuild_list_separator}${CMAKE_PREFIX_PATH}")
+    "${superbuild_prefix_path}${converted_cmake_prefix_path}")
+
+  set(no_progress OFF)
+  if (CMAKE_GENERATOR MATCHES "Ninja")
+    set(no_progress ON)
+  endif ()
 
   # ARGN needs to be quoted so that empty list items aren't removed if that
   # happens options like INSTALL_COMMAND "" won't work.
   _superbuild_ExternalProject_add(${name} "${ARGN}"
+    DOWNLOAD_NO_PROGRESS "${no_progress}"
     PREFIX        "${name}"
     DOWNLOAD_DIR  "${superbuild_download_location}"
     STAMP_DIR     "${name}/stamp"
@@ -1114,13 +1325,16 @@ function (_superbuild_add_project_internal name)
 
     PROCESS_ENVIRONMENT
       "${build_env}"
+      GIT_CEILING_DIRECTORIES "${CMAKE_BINARY_DIR}/../"
     CMAKE_ARGS
       --no-warn-unused-cli
       -DCMAKE_INSTALL_PREFIX:PATH=${superbuild_prefix_path}
       -DCMAKE_PREFIX_PATH:STRING=${prepended_cmake_prefix_path}
       -DCMAKE_C_FLAGS:STRING=${project_c_flags}
       -DCMAKE_CXX_FLAGS:STRING=${project_cxx_flags}
+      -DCMAKE_Fortran_FLAGS:STRING=${project_f_flags}
       -DCMAKE_SHARED_LINKER_FLAGS:STRING=${project_ld_flags}
+      -DCMAKE_OSX_DEPLOYMENT_TARGET:STRING=${CMAKE_OSX_DEPLOYMENT_TARGET}
       ${cmake_params}
 
     LIST_SEPARATOR "${_superbuild_list_separator}")
@@ -1141,8 +1355,15 @@ endfunction ()
 # Wrapper around ExternalProject's internal calls to gather the CMake flags
 # that would be passed to a project if it were enabled.
 function (_superbuild_write_developer_mode_cache name)
-  set(cmake_args
-    "-DCMAKE_PREFIX_PATH:PATH=\"${superbuild_prefix_path};${CMAKE_PREFIX_PATH}\"")
+  # if CMAKE_PREFIX_PATH is set, then we set the exported CMAKE_PREFIX_PATH
+  # flag to be a list of two things and it needs quotations.
+  if (CMAKE_PREFIX_PATH)
+    set(cmake_args
+      "-DCMAKE_PREFIX_PATH:PATH=${superbuild_prefix_path};${CMAKE_PREFIX_PATH}")
+  else ()
+    set(cmake_args
+      "-DCMAKE_PREFIX_PATH:PATH=${superbuild_prefix_path}")
+  endif ()
   if (debuggable AND NOT CMAKE_BUILD_TYPE_${name} STREQUAL "<same>")
     list(APPEND cmake_args
       "-DCMAKE_BUILD_TYPE:STRING=${CMAKE_BUILD_TYPE_${name}}")
@@ -1208,8 +1429,8 @@ endfunction ()
 # Currently "valid" means alphanumeric with a non-numeric prefix.
 function (_superbuild_project_check_name name)
   if (NOT name MATCHES "^[a-zA-Z][a-zA-Z0-9]*$")
-    message(FATAL_ERROR "Invalid project name: ${_name}. "
-                        "Only alphanumerics are allowed.")
+    message(FATAL_ERROR
+      "Invalid project name: ${name}. Only alphanumerics are allowed.")
   endif ()
 endfunction ()
 

@@ -29,6 +29,10 @@ The `superbuild_set_revision` function stores the given `ARG` for use when then
 `NAME` project is built. See the documentation for [ExternalProject][] for the
 supported download location arguments.
 
+If `<NAME>_SKIP_VERIFICATION` is defined and evaluates to TRUE, then URL_MD5 and
+URL_HASH arguments passed to this function are skipped thus avoiding any archive
+verification for the project.
+
 Note that validation of the arguments only happens when the project is being
 built.
 
@@ -39,11 +43,20 @@ function (superbuild_set_revision name)
     PROPERTY
       "${name}_revision" SET)
 
-  if (NOT have_revision)
-    set_property(GLOBAL
-      PROPERTY
-        "${name}_revision" "${ARGN}")
+  if (have_revision)
+    return ()
   endif ()
+
+  if (${name}_SKIP_VERIFICATION)
+    set(keys URL_HASH URL_MD5)
+    cmake_parse_arguments(_args "" "${keys}" "" ${ARGN})
+    set(args "${_args_UNPARSED_ARGUMENTS}")
+  else()
+    set(args "${ARGN}")
+  endif()
+  set_property(GLOBAL
+    PROPERTY
+      "${name}_revision" "${args}")
 endfunction ()
 
 #[==[.md INTERNAL
@@ -112,7 +125,7 @@ The signature is:
 ```
 superbuild_set_selectable_source(<NAME>
   [SELECTS_WITH <PARENT>]
-  <SELECT <SELECTION> [DEFAULT] [CUSTOMIZABLE] [FALLBACK]
+  <SELECT <SELECTION> [DEFAULT] [CUSTOMIZABLE] [PROMOTE] [FALLBACK]
     <ARG>...>...)
 ```
 
@@ -122,7 +135,9 @@ one marked by the `DEFAULT` argument or the first selection if none is
 specified.
 
 A selection may be `CUSTOMIZABLE` which means that the values to the arguments
-may be edited by the user.
+may be edited by the user. This implies `PROMOTE` because the values are in the
+cache as `<NAME>_<FIELD>`. Adding `PROMOTE` will ensure the calling scope has
+the keys set with the same variable names.
 
 A project may also `SELECTS_WITH` another project. If given, the selection of
 the `PARENT` project will be used as the selection for this project as well if
@@ -172,8 +187,17 @@ However, if it does not exist, the selection marked as the `FALLBACK` will be
 used instead.
 #]==]
 function (superbuild_set_selectable_source name)
+  get_property(have_revision GLOBAL
+    PROPERTY
+      "${name}_revision" SET)
+
+  if (have_revision)
+    return ()
+  endif ()
+
   set(selections)
   set(customizable_selections)
+  set(promote_selections)
 
   set(selection_name)
   set(selection_args)
@@ -288,6 +312,21 @@ function (superbuild_set_selectable_source name)
 
       list(APPEND customizable_selections
         "${selection_name}")
+    elseif (arg STREQUAL "PROMOTE")
+      # Error out if PROMOTE is not after a name.
+      if (NOT selection_name)
+        message(FATAL_ERROR
+          "A `PROMOTE` specifier must come after a selection name.")
+      endif ()
+
+      # Error out if PROMOTE is not before the args.
+      if (selection_args)
+        message(FATAL_ERROR
+          "A `PROMOTE` specifier must come before the selection args.")
+      endif ()
+
+      list(APPEND promote_selections
+        "${selection_name}")
     elseif (grab)
       # Store the argument.
       list(APPEND "${grab}"
@@ -362,18 +401,33 @@ function (superbuild_set_selectable_source name)
   endif ()
 
   if (NOT selection_${selection}_args)
+    string(REPLACE ";" "`, `" available "${selections}")
     message(FATAL_ERROR
-      "The ${selection} source selection for ${name} does not exist.")
+      "The ${selection} source selection for ${name} does not exist. This "
+      "selection may have existed previously; edit the "
+      "`${name}_SOURCE_SELECTION` variable as necessary. Available "
+      "selections: `${available}`.")
   endif ()
 
-  # See if the selection is customizable.
-  list(FIND customizable_selections "${selection}" idx)
-
-  if (idx EQUAL "-1")
-    superbuild_set_revision("${name}"
+  if (selection IN_LIST customizable_selections)
+    _superbuild_set_customizable_revision("${name}"
       ${selection_${selection}_args})
   else ()
-    _superbuild_set_customizable_revision("${name}"
+    if (selection IN_LIST promote_selections)
+      set(keys
+        GIT_REPOSITORY GIT_TAG
+        URL URL_HASH URL_MD5
+        SOURCE_DIR)
+      cmake_parse_arguments(_args "" "${keys}" "" ${selection_${selection}_args})
+
+      foreach (key IN LISTS keys)
+        if (_args_${key})
+          set("${name}_${key}" "${_args_${key}}" PARENT_SCOPE)
+        endif ()
+      endforeach ()
+    endif ()
+
+    superbuild_set_revision("${name}"
       ${selection_${selection}_args})
   endif ()
 endfunction ()

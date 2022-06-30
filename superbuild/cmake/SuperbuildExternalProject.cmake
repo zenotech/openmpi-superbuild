@@ -6,7 +6,7 @@ additional support for managing environments, parallel build settings, download
 management, and output suppression.
 #]==]
 
-if (CMAKE_VERSION VERSION_LESS "3.9")
+if (TRUE OR CMAKE_VERSION VERSION_LESS "3.21") # Patches haven't landed yet.
   # Needed for fixes.
   include("${CMAKE_CURRENT_LIST_DIR}/patches/ExternalProject.cmake")
 else ()
@@ -26,23 +26,47 @@ set(SUPERBUILD_PROJECT_PARALLELISM "${superbuild_cpu_count}"
   CACHE STRING "Number of jobs to use when compiling subprojects")
 mark_as_advanced(SUPERBUILD_PROJECT_PARALLELISM)
 
-set(superbuild_make_program "make")
+include(CMakeDependentOption)
+cmake_dependent_option(SUPERBUILD_USE_JOBSERVER "Whether to use the top-level jobserver or not" OFF
+  "CMAKE_GENERATOR MATCHES Makefiles" OFF)
+mark_as_advanced(SUPERBUILD_USE_JOBSERVER)
+
 if (CMAKE_GENERATOR MATCHES "Makefiles")
   set(superbuild_make_program "${CMAKE_MAKE_PROGRAM}")
+else ()
+  find_program(SUPERBUILD_MAKE_PROGRAM
+    NAMES gmake make
+    DOC "Path to the `make` executable to use")
+  if (SUPERBUILD_MAKE_PROGRAM)
+    set(superbuild_make_program "${SUPERBUILD_MAKE_PROGRAM}")
+  else ()
+    set(superbuild_make_program "make")
+  endif ()
 endif ()
-
-# Add `PROCESS_ENVIRONMENT` to the list of keywords.
-string(REPLACE ")" "|PROCESS_ENVIRONMENT)"
-  _ep_keywords__superbuild_ExternalProject_add "${_ep_keywords_ExternalProject_Add}")
 
 add_custom_target(download-all)
 
+set(old_policy_114 1)
+if (POLICY CMP0114)
+  cmake_policy(GET CMP0114 cmp0114_state)
+  if (cmp0114_state STREQUAL "NEW")
+    set(old_policy_114 0)
+  endif ()
+endif ()
+
 set(_superbuild_independent_step_targets
   download
-  update)
-set_property(DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}"
-  PROPERTY
-    EP_INDEPENDENT_STEP_TARGETS "${_superbuild_independent_step_targets}")
+  update
+  patch)
+if (old_policy_114)
+  set_property(DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}"
+    PROPERTY
+      EP_INDEPENDENT_STEP_TARGETS "${_superbuild_independent_step_targets}")
+else ()
+  set_property(DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}"
+    PROPERTY
+      EP_STEP_TARGETS "${_superbuild_independent_step_targets}")
+endif ()
 
 option(SUPERBUILD_OFFLINE_BUILD "Do not update git repositories during the build" OFF)
 if (SUPERBUILD_OFFLINE_BUILD)
@@ -57,10 +81,12 @@ function (_superbuild_ep_strip_extra_arguments name)
   set(arguments)
   set(accumulate FALSE)
 
+  _ep_get_add_keywords(keywords)
+
   foreach (arg IN LISTS ARGN)
     if (arg STREQUAL "PROCESS_ENVIRONMENT")
       set(skip TRUE)
-    elseif (arg MATCHES "${_ep_keywords_ExternalProject_Add}")
+    elseif (arg IN_LIST keywords)
       set(skip FALSE)
     endif ()
 
@@ -99,7 +125,11 @@ function (_superbuild_ep_wrap_command var target command_name)
   # Replace $(MAKE) usage.
   set(submake_regex "^\\$\\(MAKE\\)")
   if (command MATCHES "${submake_regex}")
-    string(REGEX REPLACE "${submake_regex}" "${superbuild_make_program};-j${SUPERBUILD_PROJECT_PARALLELISM}" command "${command}")
+    set(submake_command "${superbuild_make_program}")
+    if (NOT SUPERBUILD_USE_JOBSERVER)
+      list(APPEND submake_command "-j${SUPERBUILD_PROJECT_PARALLELISM}")
+    endif ()
+    string(REGEX REPLACE "${submake_regex}" "${submake_command}" command "${command}")
   endif ()
 
   if (command)
@@ -126,7 +156,10 @@ endfunction ()
 function (_superbuild_ExternalProject_add name)
   # Create a temporary target so we can query target properties.
   add_custom_target("sb-${name}")
-  _ep_parse_arguments(_superbuild_ExternalProject_add "sb-${name}" _EP_ "${ARGN}")
+  _ep_get_add_keywords(keywords)
+  list(APPEND keywords
+    PROCESS_ENVIRONMENT)
+  _ep_parse_arguments("${keywords}" "sb-${name}" _EP_ "${ARGN}")
 
   get_property(has_process_environment TARGET "sb-${name}"
     PROPERTY _EP_PROCESS_ENVIRONMENT SET)
@@ -153,10 +186,15 @@ function (_superbuild_ExternalProject_add name)
     "${install_command}")
 
   # Now strip `PROCESS_ENVIRONMENT` and commands from arguments.
+  set(skippable_args
+    PROCESS_ENVIRONMENT
+    BUILD_COMMAND
+    INSTALL_COMMAND
+    CONFIGURE_COMMAND)
   set(skip FALSE)
   foreach (arg IN LISTS ARGN)
-    if (arg MATCHES "${_ep_keywords__superbuild_ExternalProject_add}")
-      if (arg MATCHES "^(PROCESS_ENVIRONMENT|BUILD_COMMAND|INSTALL_COMMAND|CONFIGURE_COMMAND)$")
+    if (arg IN_LIST keywords)
+      if (arg IN_LIST skippable_args)
         set(skip TRUE)
       else ()
         set(skip FALSE)
@@ -183,6 +221,11 @@ function (_superbuild_ExternalProject_add name)
     list(APPEND args
       LOG_BUILD   1
       LOG_INSTALL 1)
+  endif ()
+
+  if (SUPERBUILD_DEBUG_CONFIGURE_STEPS)
+    list(APPEND args
+      LOG_CONFIGURE 1)
   endif ()
 
   # Quote args to keep empty list elements around so that we properly parse
