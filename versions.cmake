@@ -1,20 +1,20 @@
 
 superbuild_set_selectable_source(openmpi
-  SELECT 4.1.4 DEFAULT
-  URL     "https://download.open-mpi.org/release/open-mpi/v4.1/openmpi-4.1.4.tar.bz2"
-  URL_MD5 f057e12aabaf7dd5a6a658180fca404e 
+  SELECT 4.1.5 DEFAULT
+  URL "https://download.open-mpi.org/release/open-mpi/v4.1/openmpi-4.1.5.tar.gz"
+  URL_MD5 2593008bea4bc721b9f304428abbf94b 
   SELECT 3.1.6
   URL     "https://download.open-mpi.org/release/open-mpi/v3.1/openmpi-3.1.6.tar.bz2"
   URL_MD5 d2b643de03d8f7d8064d7a35ad5b385d
 )
    
 superbuild_set_revision(libfabric
-  URL     "https://github.com/ofiwg/libfabric/archive/refs/tags/v1.16.1.tar.gz"
-  URL_MD5 082a8ec05a52529d1f7a0647740ace74)
+  URL "https://github.com/ofiwg/libfabric/releases/download/v1.17.1/libfabric-1.17.1.tar.bz2"
+  URL_MD5 043b891a6cfe850570957703400127ae)
 
 superbuild_set_revision(ucx
-  URL "https://github.com/openucx/ucx/releases/download/v1.13.1/ucx-1.13.1.tar.gz"
-  URL_MD5 38b74d923a4282d42ab4c4eeac971ada)
+  URL "https://github.com/openucx/ucx/releases/download/v1.14.0/ucx-1.14.0.tar.gz"
+  URL_MD5 590d524b47f1f426733a229309e6bc1c)
 
 superbuild_set_revision(psm2
   URL     "https://github.com/intel/opa-psm2/archive/IFS_RELEASE_10_10_2_0_44.tar.gz"
