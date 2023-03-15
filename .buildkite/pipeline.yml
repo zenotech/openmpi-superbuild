@@ -1,0 +1,16 @@
+steps:
+      - label: ":cpp: Build"
+        command: .buildkite/build.sh
+        artifact_paths:
+          - "*.tar.gz"
+        plugins:
+          - docker#v3.8.0:
+              entrypoint: /usr/local/enable_intel
+              image: 206745703713.dkr.ecr.eu-west-1.amazonaws.com/zcfd/dev:2020.4
+              mount-ssh-agent: true
+              privileged: true
+              propagate-aws-auth-tokens: true
+              propagate-environment: true
+              shm-size: 1gb
+              tmpfs: ["/buildtmp:exec"]
+              user: root
