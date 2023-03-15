@@ -22,9 +22,11 @@ export FC=ifx
 cmake -DENABLE_openmpi=ON -DENABLE_libfabric=ON -DENABLE_cuda=ON -DENABLE_ucx=ON -DENABLE_efa=OFF -DENABLE_psm2=OFF -DENABLE_gdrcopy=OFF -DENABLE_nccl=OFF -DENABLE_awsofinccl=OFF ..
 cmake --build . -- VERBOSE=true
 ctest -R
+popd
+# Copy tarball
+cp build/*.tar.gz .
 # This will be owned by root so make it available to the buildkite user
 chmod ugo+r *.tar.gz
-popd
 
 # Cleanup the build tree
 rm -rf build
