@@ -16,7 +16,7 @@ if [ ! -f ${PWD}/cmake-${CMAKE_VERSION}-linux-x86_64/bin/cmake ]; then
   sh ${DOWNLOAD_DIR}/cmake-${CMAKE_VERSION}-linux-x86_64.sh --prefix=${PWD} --include-subdir
 fi
 export PATH=${PWD}/cmake-${CMAKE_VERSION}-linux-x86_64/bin:${PATH}
-cmake -DENABLE_openmpi=ON -DENABLE_libfabric=ON -DENABLE_cuda=ON -DENABLE_ucx=ON -DENABLE_efa=ON -DENABLE_psm2=OFF -DENABLE_nccl=ON -DENABLE_awsofinccl=ON ..
+cmake -DENABLE_openmpi=ON -DENABLE_libfabric=ON -DENABLE_cuda=ON -DENABLE_ucx=ON -DENABLE_efa=OFF -DENABLE_psm2=OFF -DENABLE_nccl=ON -DENABLE_awsofinccl=OFF ..
 cmake --build . -- VERBOSE=true
 ctest -R
 popd
