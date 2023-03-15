@@ -25,8 +25,8 @@ superbuild_set_revision(gdrcopy
   URL_MD5 7d41b560b8616eddde16662d7aa4e3a4)
 
 superbuild_set_revision(nccl
-  URL "https://github.com/NVIDIA/nccl/archive/refs/tags/v2.15.5-1.tar.gz"
-  URL_MD5 1e11ca0063b2b4bd384fa5080c36aee9)
+  URL "https://github.com/NVIDIA/nccl/archive/refs/tags/v2.17.1-1.tar.gz"
+  URL_MD5 4a9e43e844eaac96dbcf19461bd7a646)
 
 superbuild_set_revision(awsofinccl
     GIT_REPOSITORY "https://github.com/aws/aws-ofi-nccl.git"
