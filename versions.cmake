@@ -13,7 +13,7 @@ superbuild_set_revision(libfabric
   URL_MD5 d6275f6990a26dc144a1d43899c20a2d)
 
 superbuild_set_revision(ucx
-  URL "https://github.com/openucx/ucx/releases/download/v1.14.0/ucx-1.14.0.tar.gz"
+  URL "https://github.com/openucx/ucx/releases/download/v1.15.0/ucx-1.15.0.tar.gz"
   URL_MD5 590d524b47f1f426733a229309e6bc1c)
 
 superbuild_set_revision(psm2
