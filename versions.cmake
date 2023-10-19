@@ -14,7 +14,7 @@ superbuild_set_revision(libfabric
 
 superbuild_set_revision(ucx
   URL "https://github.com/openucx/ucx/releases/download/v1.15.0/ucx-1.15.0.tar.gz"
-  URL_MD5 590d524b47f1f426733a229309e6bc1c)
+  URL_MD5 bb141973027ba522b397f89272681cee)
 
 superbuild_set_revision(psm2
   URL     "https://github.com/intel/opa-psm2/archive/IFS_RELEASE_10_10_2_0_44.tar.gz"
