@@ -7,5 +7,5 @@ steps:
           CCACHE_DIR: /ccache
           CCACHE_MAXSIZE: 40G
         agents:
-          digest: "700935a1253dd3cdac352dfc141242c6f32866b3f94f456e5efd57275a86f89f"
+          digest: "5a05fddacc4b392d59131dc459fc70e79a7c346a86b92346ab03ee321730ff93"
           queue: "zcfd"
