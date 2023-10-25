@@ -11,6 +11,10 @@ set(EFA_OPTION)
 if(ENABLE_efa)
         set(EFA_OPTION "--enable-efa=dl")
 endif()
+set(VERBS_OPTION --enable-verbs=dl)
+if(APPLE)
+        set(VERBS_OPTION)
+endif()
 
 superbuild_add_project(
   libfabric
@@ -20,8 +24,8 @@ superbuild_add_project(
   CONFIGURE_COMMAND <SOURCE_DIR>/configure 
                     --verbose
                     --prefix=<INSTALL_DIR> 
-                    --enable-tcp=yes 
-		    --enable-verbs=dl
+                    --enable-tcp=yes
+                    ${VERBS_OPTION} 
                     ${EFA_OPTION}
 		    ${UCX_OPTION}
 		    ${PSM_OPTION}

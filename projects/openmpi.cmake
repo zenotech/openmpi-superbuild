@@ -14,6 +14,11 @@ if(ENABLE_psm2)
     set(PSM_OPTION --with-psm2=<INSTALL_DIR>/usr --with-psm2-libdir=<INSTALL_DIR>/usr/lib64)
 endif()
 
+set(VERBS_OPTION --with-verbs)
+if(APPLE)
+     set(VERBS_OPTION)
+endif()
+
 superbuild_add_project(
   openmpi
   DEPENDS libfabric
@@ -22,10 +27,10 @@ superbuild_add_project(
   CONFIGURE_COMMAND <SOURCE_DIR>/configure 
                     --prefix=<INSTALL_DIR> 
 		    --with-ofi=<INSTALL_DIR> 
-		    --with-verbs 
 		    --enable-orterun-prefix-by-default 
 		    --with-io-romio-flags=--with-file-system=nfs+ufs+gpfs+lustre
 		    --enable-mpi1-compatibility
+                    ${VERBS_OPTION}
                     ${CUDA_OPTION}
 		    ${UCX_OPTION}
 		    ${PSM_OPTION}
