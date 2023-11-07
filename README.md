@@ -49,6 +49,8 @@ sudo cma_roce_mode -d mlx5_0 -p 1
 
 -mca pml ucx --mca btl self -x UCX_TLS=rc,self,sm -x UCX_NET_DEVICES=mlx5_2:1 -x UCX_IB_GID_INDEX=3 -x UCX_IB_TRAFFIC_CLASS=104
 
+UCX + CUDA
+--mca pml ucx -x UCX_TLS=rc,sm,cuda_copy,gdr_copy,cuda_ipc
 
 ## ROMIO NFS
 

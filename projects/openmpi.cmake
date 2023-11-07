@@ -1,7 +1,10 @@
 
+set(DSO_LIST "btl,mtl,pml,common-ofi,mtl-ofi,btl-ofi,pml-ucx")
+
 set(CUDA_OPTION)
 if(CMAKE_CUDA_COMPILER_ID STREQUAL "NVIDIA")
-  set(CUDA_OPTION "--with-cuda=${CMAKE_CUDA_TOOLKIT_INCLUDE_DIRECTORIES}/../")
+  set(CUDA_OPTION "--with-cuda=${CMAKE_CUDA_TOOLKIT_INCLUDE_DIRECTORIES}/../)
+  set(DSO_LIST "${DSO_LIST},btl-smcuda,rcache-rgpusm,rcache-gpusm,accelerator-cuda")
 endif()
 
 set(UCX_OPTION)
@@ -30,11 +33,12 @@ superbuild_add_project(
 		    --enable-orterun-prefix-by-default 
 		    --with-io-romio-flags=--with-file-system=nfs+ufs+gpfs+lustre
 		    --enable-mpi1-compatibility
+                    --enable-mca-dso=${DSO_LIST}
                     ${VERBS_OPTION}
                     ${CUDA_OPTION}
 		    ${UCX_OPTION}
 		    ${PSM_OPTION}
   BUILD_COMMAND make -j${SUPERBUILD_PROJECT_PARALLELISM} -l${SUPERBUILD_PROJECT_PARALLELISM}
   INSTALL_COMMAND make install
-  )
+)
 

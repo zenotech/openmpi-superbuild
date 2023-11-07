@@ -3,7 +3,7 @@ set(CUDA_OPTION)
 if(CMAKE_CUDA_COMPILER_ID STREQUAL "NVIDIA")
 	set(CUDA_OPTION "--with-cuda=${CMAKE_CUDA_TOOLKIT_INCLUDE_DIRECTORIES}/../")
 endif()
-if(ENABLED_gdrcopy)
+if(ENABLE_gdrcopy)
 	set(CUDA_OPTION "${CUDA_OPTION} --with-gdrcopy=<INSTALL_DIR>")
 endif()
 
