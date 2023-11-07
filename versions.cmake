@@ -1,11 +1,11 @@
 
 superbuild_set_selectable_source(openmpi
-  SELECT 4.1.6 DEFAULT
+  SELECT 5.0.0 DEFAULT
+  URL "https://download.open-mpi.org/release/open-mpi/v5.0/openmpi-5.0.0.tar.bz2"
+  URL_MD5 5c4fae19e1d853abeb1bdadd10a59466
+  SELECT 4.1.6
   URL "https://download.open-mpi.org/release/open-mpi/v4.1/openmpi-4.1.6.tar.gz"
   URL_MD5 e478b1d886935e5f836a9164ad4806d0 
-  SELECT 3.1.6
-  URL     "https://download.open-mpi.org/release/open-mpi/v3.1/openmpi-3.1.6.tar.bz2"
-  URL_MD5 d2b643de03d8f7d8064d7a35ad5b385d
 )
    
 superbuild_set_revision(libfabric
@@ -25,8 +25,8 @@ superbuild_set_revision(gdrcopy
   URL_MD5 7d41b560b8616eddde16662d7aa4e3a4)
 
 superbuild_set_revision(nccl
-  URL "https://github.com/NVIDIA/nccl/archive/refs/tags/v2.17.1-1.tar.gz"
-  URL_MD5 4a9e43e844eaac96dbcf19461bd7a646)
+  URL "https://github.com/NVIDIA/nccl/archive/refs/tags/v2.19.3-1.tar.gz"
+  URL_MD5 ba8313dfd12a92c790abc5a9afee093f)
 
 superbuild_set_revision(awsofinccl
     GIT_REPOSITORY "https://github.com/aws/aws-ofi-nccl.git"

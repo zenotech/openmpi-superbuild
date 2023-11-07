@@ -5,7 +5,7 @@ OpenMPI superbuild
 
 ```
 mkdir build; pushd build
-cmake -DENABLE_openmpi=ON -DENABLE_cuda=ON -DENABLE_ucx=ON -DENABLE_efa=OFF -DENABLE_psm2=OFF ../openmpi-superbuild/
+cmake -DENABLE_openmpi=ON -DENABLE_cuda=ON -DENABLE_ze=OFF -DENABLE_ucx=ON -DENABLE_efa=OFF -DENABLE_psm2=OFF ../openmpi-superbuild/
 cmake --build . -- VERBOSE=true
 ctest -R
 popd
@@ -23,6 +23,8 @@ Select version to build -Dopenmpi_SOURCE_SELECTION=3.6.1
 - https://hpcadvisorycouncil.atlassian.net/wiki/spaces/HPCWORKS/pages/13074505/MPI+Frameworks
 - https://www.mellanox.com/related-docs/prod_acceleration_software/HPC-X_Toolkit_User_Manual_v2.3.pdf
 
+## Level 0
+https://github.com/oneapi-src/level-zero/releases
 
 ## EFA notes
 
