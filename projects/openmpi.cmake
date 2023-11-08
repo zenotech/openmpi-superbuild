@@ -22,6 +22,8 @@ if(APPLE)
      set(VERBS_OPTION)
 endif()
 
+# Need to add flags for level zero in hwloc and romio configure
+
 superbuild_add_project(
   openmpi
   DEPENDS libfabric
