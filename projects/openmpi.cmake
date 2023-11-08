@@ -1,7 +1,10 @@
 
+set(DSO_LIST "common-ofi,mtl-ofi,btl-ofi,btl-openib,pml-ucx")
+
 set(CUDA_OPTION)
 if(CMAKE_CUDA_COMPILER_ID STREQUAL "NVIDIA")
   set(CUDA_OPTION "--with-cuda=${CMAKE_CUDA_TOOLKIT_INCLUDE_DIRECTORIES}/../")
+  set(DSO_LIST "${DSO_LIST},btl-smcuda,rcache-rgpusm,rcache-gpusm,accelerator-cuda")
 endif()
 
 set(UCX_OPTION)
@@ -19,6 +22,8 @@ if(APPLE)
      set(VERBS_OPTION)
 endif()
 
+# Need to add flags for level zero in hwloc and romio configure
+
 superbuild_add_project(
   openmpi
   DEPENDS libfabric
@@ -30,11 +35,13 @@ superbuild_add_project(
 		    --enable-orterun-prefix-by-default 
 		    --with-io-romio-flags=--with-file-system=nfs+ufs+gpfs+lustre
 		    --enable-mpi1-compatibility
+                    --enable-mca-dso=${DSO_LIST}
+                    --with-hwloc=internal --with-libevent=internal
                     ${VERBS_OPTION}
                     ${CUDA_OPTION}
 		    ${UCX_OPTION}
 		    ${PSM_OPTION}
   BUILD_COMMAND make -j${SUPERBUILD_PROJECT_PARALLELISM} -l${SUPERBUILD_PROJECT_PARALLELISM}
   INSTALL_COMMAND make install
-  )
+)
 

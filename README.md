@@ -5,7 +5,7 @@ OpenMPI superbuild
 
 ```
 mkdir build; pushd build
-cmake -DENABLE_openmpi=ON -DENABLE_cuda=ON -DENABLE_ucx=ON -DENABLE_efa=OFF -DENABLE_psm2=OFF ../openmpi-superbuild/
+cmake -DENABLE_openmpi=ON -DENABLE_cuda=ON -DENABLE_ze=OFF -DENABLE_ucx=ON -DENABLE_efa=OFF -DENABLE_psm2=OFF ../openmpi-superbuild/
 cmake --build . -- VERBOSE=true
 ctest -R
 popd
@@ -23,6 +23,8 @@ Select version to build -Dopenmpi_SOURCE_SELECTION=3.6.1
 - https://hpcadvisorycouncil.atlassian.net/wiki/spaces/HPCWORKS/pages/13074505/MPI+Frameworks
 - https://www.mellanox.com/related-docs/prod_acceleration_software/HPC-X_Toolkit_User_Manual_v2.3.pdf
 
+## Level 0
+https://github.com/oneapi-src/level-zero/releases
 
 ## EFA notes
 
@@ -49,6 +51,8 @@ sudo cma_roce_mode -d mlx5_0 -p 1
 
 -mca pml ucx --mca btl self -x UCX_TLS=rc,self,sm -x UCX_NET_DEVICES=mlx5_2:1 -x UCX_IB_GID_INDEX=3 -x UCX_IB_TRAFFIC_CLASS=104
 
+UCX + CUDA
+--mca pml ucx -x UCX_TLS=rc,sm,cuda_copy,gdr_copy,cuda_ipc
 
 ## ROMIO NFS
 
