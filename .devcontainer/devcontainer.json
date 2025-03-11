@@ -1,0 +1,75 @@
+// For format details, see https://aka.ms/devcontainer.json. For config options, see the
+// README at: https://github.com/devcontainers/templates/tree/main/src/cpp
+{
+	"name": "C++",
+	"image": i"quay.io/zenotech/dev:2025.0.1-12.8",
+	"capAdd": [
+		"SYS_ADMIN",
+		"SYS_PTRACE"
+	],
+	"securityOpt": [
+		"seccomp=unconfined"
+	],
+	"privileged": true,
+	"runArgs": [
+		"--init",
+		"--gpus=all",
+		"--shm-size=1g",
+		"--name=${localEnv:LOGNAME}-openmpi",
+		"--hostname=${localEnv:LOGNAME}-openmpi"
+	],
+	// Use 'postCreateCommand' to run commands after the container is created.
+	"postCreateCommand": [
+		"nvidia-smi"
+	],
+	"containerEnv": {
+		"SSH_AUTH_SOCK": "/ssh-agent",
+		"HOME": "${localEnv:HOME_DIR}"
+	},
+	"mounts": [
+		{
+			"type": "bind",
+			"source": "${localEnv:HOME_MNT}",
+			"target": "/home/${localEnv:DEFAULT_USER}"
+		},
+		{
+			"type": "bind",
+			"source": "/n",
+			"target": "/n"
+		},
+		{
+			"type": "bind",
+			"source": "/apps",
+			"target": "/apps"
+		},
+		{
+			"type": "bind",
+			"source": "${localEnv:SSH_AUTH_SOCK}",
+			"target": "/ssh-agent"
+		},
+		{
+			"type": "bind",
+			"source": "${localEnv:DDT_MOUNTS}",
+			"target": "/home/${localEnv:DEFAULT_USER}/.allinea"
+		}
+	],
+	// Features to add to the dev container. More info: https://containers.dev/features.
+	"hostRequirements": "gpu",
+	// Use 'forwardPorts' to make a list of ports inside the container available locally.
+	// "forwardPorts": [],
+	"features": {
+		"ghcr.io/devcontainers/features/common-utils:2": {
+			"installZsh": true,
+			"username": "vscode",
+			"upgradePackages": false
+		},
+		"ghcr.io/devcontainers/features/git:1": {
+			"version": "latest",
+			"ppa": "false"
+		}
+	},
+	// Configure tool-specific properties.
+	// "customizations": {},
+	"remoteUser": "${localEnv:DEFAULT_USER}",
+	"containerUser": "${localEnv:DEFAULT_USER}"
+}
