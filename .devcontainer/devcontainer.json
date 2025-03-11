@@ -1,8 +1,8 @@
 // For format details, see https://aka.ms/devcontainer.json. For config options, see the
 // README at: https://github.com/devcontainers/templates/tree/main/src/cpp
 {
-	"name": "C++",
-	"image": i"quay.io/zenotech/dev:2025.0.1-12.8",
+	"name": "Zenotech Dev Container",
+	"build": { "dockerfile": "Dockerfile" },
 	"capAdd": [
 		"SYS_ADMIN",
 		"SYS_PTRACE"
