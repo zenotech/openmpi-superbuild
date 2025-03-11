@@ -4,11 +4,12 @@ OpenMPI superbuild
 ## Build
 
 ```
-mkdir build; pushd build
-cmake -DENABLE_openmpi=ON -DENABLE_cuda=ON -DENABLE_ze=OFF -DENABLE_ucx=ON -DENABLE_efa=OFF -DENABLE_psm2=OFF ../openmpi-superbuild/
-cmake --build . -- VERBOSE=true
-ctest -R
+(mkdir build; pushd build;
+cmake -DENABLE_openmpi=ON -DENABLE_cuda=ON -DENABLE_ze=OFF -DENABLE_ucx=ON -DENABLE_efa=OFF -DENABLE_psm2=OFF ../openmpi-superbuild/;
+cmake --build . -- VERBOSE=true;
+ctest -R;
 popd
+)
 ```
 
 cuda support build requires PATH to nvcc and LD_LIBRARY_PATH to libcudart.so to be set
