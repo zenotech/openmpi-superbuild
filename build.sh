@@ -43,7 +43,7 @@ else
     else
         export HOME_MNT=${HOME}
     fi
-    
+
     if [ -n "${BUILDKITE_BRANCH:-}" ]; then
         export GIT_BRANCH=${BUILDKITE_BRANCH}
     else
@@ -52,6 +52,15 @@ else
 
     export CONTAINER_NAME=${LOGNAME}-ompi-${GIT_BRANCH}
 
+	echo "Cleaning dev container..."
+	if docker ps -a --format '{{.Names}}' | grep -Eq "^${CONTAINER_NAME}\$"; then
+		echo "Docker container exists, running cleanup command..."
+		docker kill ${CONTAINER_NAME}
+		docker rm ${CONTAINER_NAME}
+	else
+		echo "Container does not exist, skipping cleanup."
+	fi
+    
     # If outside a Docker container, start a dev container with the specified workspace folder
     devcontainer up --remove-existing-container --workspace-folder "${workspace_dir}"
 
