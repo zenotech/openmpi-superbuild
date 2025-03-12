@@ -33,6 +33,10 @@ else
 	export HOME_MNT="/n/fdshome/${USER}"
 fi
 
+export GIT_BRANCH=$(git rev-parse --abbrev-ref HEAD)
+
+export CONTAINER_NAME=${LOGNAME}-ompi-${GIT_BRANCH}
+
 # Get the directory of the current script
 workspace_dir=$(dirname $0)
 
