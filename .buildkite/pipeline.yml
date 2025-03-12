@@ -1,11 +1,12 @@
 steps:
-      - label: ":cpp: Build"
-        command: .buildkite/build.sh
-        artifact_paths:
-           - "*.tar.gz"
-        env:
-          CCACHE_DIR: /ccache
-          CCACHE_MAXSIZE: 40G
-        agents:
-          digest: "5a05fddacc4b392d59131dc459fc70e79a7c346a86b92346ab03ee321730ff93"
-          queue: "zcfd"
+  - group: ":cpp: Build"
+    key: "build"
+    steps:
+    - label: "Build Linux :linux:"
+      command: "SSH_AUTH_SOCK=/dev/null ./build.sh"
+      plugins:
+      - git-clean#v1.0.0:
+          flags: "-ffdqx --exclude=vcpkg_cache"
+      key: "build-linux"
+      artifact_paths: 
+      - "*.tar.gz"
