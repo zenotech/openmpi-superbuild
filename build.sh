@@ -4,28 +4,6 @@
 # treat unset variables as an error, and prevent errors in a pipeline from being masked
 set -euo pipefail
 
-# Set the home directory
-export HOME_DIR=${HOME}
-
-# This requires the passwd file to be mapped into the container
-# export DEFAULT_USER=${DEFAULT_USER:-$USER}
-
-# Set the default user to 'vscode'
-export DEFAULT_USER=vscode
-
-# Set the directory for DDT mounts and create it if it doesn't exist
-export DDT_MOUNTS="/n/fdshome/${USER}/.allinea"
-mkdir -p $DDT_MOUNTS/
-
-# Check if HOME_MNT is set, if so, use it and set HOME_DIR accordingly
-# Otherwise, set HOME_MNT to a default value
-if [ -n "${HOME_MNT:-}" ]; then
-	export HOME_MNT="${HOME_MNT}"
-	export HOME_DIR=/home/${DEFAULT_USER}
-else
-	export HOME_MNT="/n/fdshome/${USER}"
-fi
-
 # Get the absolute path of the directory containing this script
 workspace_dir=$(realpath $(dirname $0))
 
@@ -43,6 +21,29 @@ if [ -f /.dockerenv ] || [ -f /run/.containerenv ]; then
     # If inside a Docker container, execute the build command
     exec bash -c "${BUILD_CMD}"
 else
+
+    # Set the home directory
+    export HOME_DIR=${HOME}
+
+    # This requires the passwd file to be mapped into the container
+    # export DEFAULT_USER=${DEFAULT_USER:-$USER}
+
+    # Set the default user to 'vscode'
+    export DEFAULT_USER=vscode
+
+    # Set the directory for DDT mounts and create it if it doesn't exist
+    export DDT_MOUNTS="${HOME}/.allinea"
+    mkdir -p $DDT_MOUNTS/
+
+    # Check if HOME_MNT is set, if so, use it and set HOME_DIR accordingly
+    # Otherwise, set HOME_MNT to a default value
+    if [ -n "${HOME_MNT:-}" ]; then
+        export HOME_MNT="${HOME_MNT}"
+        export HOME_DIR=/home/${DEFAULT_USER}
+    else
+        export HOME_MNT=${HOME}
+    fi
+
     # If outside a Docker container, start a dev container with the specified workspace folder
     devcontainer up --remove-existing-container --workspace-folder "${workspace_dir}"
 
