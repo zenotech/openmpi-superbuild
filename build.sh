@@ -1,23 +1,51 @@
 #!/bin/bash
 
-
+# Exit immediately if a command exits with a non-zero status, 
+# treat unset variables as an error, and prevent errors in a pipeline from being masked
 set -euo pipefail
 
-workspace_dir=$(realpath $(dirname $0))
+# Set the home directory
+export HOME_DIR=${HOME}
 
-CMAKE_CMD=".buildkite/build.sh"
+# This requires the passwd file to be mapped into the container
+# export DEFAULT_USER=${DEFAULT_USER:-$USER}
 
-CMD="bash -c \"${CMAKE_CMD}\""
+# Set the default user to 'vscode'
+export DEFAULT_USER=vscode
 
-echo "${CMD}"
+# Set the directory for DDT mounts and create it if it doesn't exist
+export DDT_MOUNTS="/n/fdshome/${USER}/.allinea"
+mkdir -p $DDT_MOUNTS/
 
-if [ -f /.dockerenv ] || [ -f /run/.containerenv ]; then
-    # inside docker container
-    exec bash -c "${CMAKE_CMD}"
+# Check if HOME_MNT is set, if so, use it and set HOME_DIR accordingly
+# Otherwise, set HOME_MNT to a default value
+if [ -n "${HOME_MNT:-}" ]; then
+	export HOME_MNT="${HOME_MNT}"
+	export HOME_DIR=/home/${DEFAULT_USER}
 else
-    # outside docker container
-    devcontainer up --remove-existing-container --workspace-folder "${workspace_dir}"
-
-    exec devcontainer exec --workspace-folder "${workspace_dir}" bash -c "${CMAKE_CMD}"
+	export HOME_MNT="/n/fdshome/${USER}"
 fi
 
+# Get the absolute path of the directory containing this script
+workspace_dir=$(realpath $(dirname $0))
+
+# Command to build the project
+BUILD_CMD=".buildkite/build.sh"
+
+# Command to be executed
+CMD="bash -c \"${BUILD_CMD}\""
+
+# Print the command to be executed
+echo "${CMD}"
+
+# Check if the script is running inside a Docker container
+if [ -f /.dockerenv ] || [ -f /run/.containerenv ]; then
+    # If inside a Docker container, execute the build command
+    exec bash -c "${BUILD_CMD}"
+else
+    # If outside a Docker container, start a dev container with the specified workspace folder
+    devcontainer up --remove-existing-container --workspace-folder "${workspace_dir}"
+
+    # Execute the build command inside the dev container
+    exec devcontainer exec --workspace-folder "${workspace_dir}" bash -c "${BUILD_CMD}"
+fi
