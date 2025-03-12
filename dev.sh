@@ -43,10 +43,10 @@ workspace_dir=$(dirname $0)
 # If CLEAN is set, run the specified command and exit
 if [ "${CLEAN:-}" = true ]; then
 	echo "Cleaning dev container..."
-	if docker ps -a --format '{{.Names}}' | grep -Eq "^$(whoami)-openmpi\$"; then
+	if docker ps -a --format '{{.Names}}' | grep -Eq "^${CONTAINER_NAME}\$"; then
 		echo "Docker container exists, running cleanup command..."
-		docker kill $(whoami)-openmpi
-		docker rm $(whoami)-openmpi
+		docker kill ${CONTAINER_NAME}
+		docker rm ${CONTAINER_NAME}
 	else
 		echo "Container does not exist, skipping cleanup."
 	fi
