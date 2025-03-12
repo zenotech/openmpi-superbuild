@@ -2,7 +2,9 @@
 // README at: https://github.com/devcontainers/templates/tree/main/src/cpp
 {
 	"name": "Zenotech Dev Container",
-	"build": { "dockerfile": "Dockerfile" },
+	"build": {
+		"dockerfile": "Dockerfile"
+	},
 	"capAdd": [
 		"SYS_ADMIN",
 		"SYS_PTRACE"
@@ -15,8 +17,8 @@
 		"--init",
 		"--gpus=all",
 		"--shm-size=1g",
-		"--name=${localEnv:LOGNAME}-openmpi",
-		"--hostname=${localEnv:LOGNAME}-openmpi"
+		"--name=${localEnv:LOGNAME}-ompi-${LocalEnv:GIT_BRANCH}",
+		"--hostname=${localEnv:LOGNAME}-ompi-${LocalEnv:GIT_BRANCH}"
 	],
 	// Use 'postCreateCommand' to run commands after the container is created.
 	"postCreateCommand": [

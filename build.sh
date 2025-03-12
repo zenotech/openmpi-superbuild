@@ -44,6 +44,8 @@ else
         export HOME_MNT=${HOME}
     fi
 
+    export GIT_BRANCH=$(git rev-parse --abbrev-ref HEAD)
+
     # If outside a Docker container, start a dev container with the specified workspace folder
     devcontainer up --remove-existing-container --workspace-folder "${workspace_dir}"
 
