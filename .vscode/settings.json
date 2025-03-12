@@ -1,0 +1,13 @@
+{
+    "files.associations": {
+        "rope": "cpp",
+        "deque": "cpp",
+        "list": "cpp",
+        "locale": "cpp",
+        "random": "cpp",
+        "regex": "cpp",
+        "string": "cpp",
+        "valarray": "cpp",
+        "vector": "cpp"
+    }
+}

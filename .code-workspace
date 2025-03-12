@@ -1,0 +1,28 @@
+{
+    "settings": {
+        "cmake.configureOnOpen": false,
+        "editor.formatOnSave": true,
+        "files.associations": {
+            "CMakeLists.txt": "cmake",
+        },
+        "sourcegraph.url": "https://cs.zenotech.com"
+    },
+    "extensions": {
+        "recommendations": [
+            "ms-vscode.cpptools",
+            "xaver.clang-format",
+            "twxs.cmake",
+            "ms-vscode.cmake-tools",
+            "cheshirekow.cmake-format",
+            "ms-python.vscode-pylance",
+            "ms-python.python",
+            "eamodio.gitlens",
+            "sourcegraph.sourcegraph",
+            "bazelbuild.vscode-bazel",
+            "github.vscode-pull-request-github",
+            "wholroyd.jinja",
+            "lextudio.restructuredtext",
+            "torn4dom4n.latex-support"
+        ]
+    }
+}
