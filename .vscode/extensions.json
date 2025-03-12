@@ -1,0 +1,22 @@
+{
+    "recommendations": [
+        "github.copilot",
+        "github.copilot-chat",
+        "ms-python.black-formatter",
+        "ms-python.debugpy",
+        "ms-python.python",
+        "ms-python.vscode-pylance",
+        "ms-vscode.cpptools",
+        "xaver.clang-format",
+        "twxs.cmake",
+        "ms-vscode.cmake-tools",
+        "cheshirekow.cmake-format",
+        "ms-python.vscode-pylance",
+        "ms-python.python",
+        "eamodio.gitlens",
+        "sourcegraph.sourcegraph",
+        "github.vscode-pull-request-github",
+        "lextudio.restructuredtext",
+        "torn4dom4n.latex-support"
+    ]
+}
