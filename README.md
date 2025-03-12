@@ -12,6 +12,8 @@ popd
 )
 ```
 
+or use build.sh to build inside devcontainer
+
 cuda support build requires PATH to nvcc and LD_LIBRARY_PATH to libcudart.so to be set
 
 psm2 build requires hfi-devel package to be installed 
