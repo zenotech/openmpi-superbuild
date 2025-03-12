@@ -17,8 +17,8 @@
 		"--init",
 		"--gpus=all",
 		"--shm-size=1g",
-		"--name=${localEnv:LOGNAME}-ompi-${LocalEnv:GIT_BRANCH}",
-		"--hostname=${localEnv:LOGNAME}-ompi-${LocalEnv:GIT_BRANCH}"
+		"--name=${localEnv:CONTAINER_NAME}",
+		"--hostname=${localEnv:CONTAINER_NAME}"
 	],
 	// Use 'postCreateCommand' to run commands after the container is created.
 	"postCreateCommand": [
