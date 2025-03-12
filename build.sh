@@ -43,8 +43,12 @@ else
     else
         export HOME_MNT=${HOME}
     fi
-
-    export GIT_BRANCH=$(git rev-parse --abbrev-ref HEAD)
+    
+    if [ -n "${BUILDKITE_BRANCH:-}" ]; then
+        export GIT_BRANCH=${BUILDKITE_BRANCH}
+    else
+        export GIT_BRANCH=$(git rev-parse --abbrev-ref HEAD)
+    fi
 
     export CONTAINER_NAME=${LOGNAME}-ompi-${GIT_BRANCH}
 
