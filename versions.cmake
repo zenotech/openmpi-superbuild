@@ -9,11 +9,11 @@ superbuild_set_selectable_source(openmpi
 )
    
 superbuild_set_revision(libfabric
-  URL "https://github.com/ofiwg/libfabric/archive/refs/tags/v2.0.0.tar.gz"
+  URL "https://github.com/ofiwg/libfabric/archive/refs/tags/v2.3.0.tar.gz"
   URL_MD5 bee7f0a4cc189db416a46fa751b8199a)
 
 superbuild_set_revision(ucx
-  URL "https://github.com/openucx/ucx/releases/download/v1.18.0/ucx-1.18.0.tar.gz"
+  URL "https://github.com/openucx/ucx/releases/download/v1.19.1-rc1/ucx-1.19.0.tar.gz"
   URL_MD5 b32a56b2c5e9dc24687b8ea0eb0c0ab7)
 
 superbuild_set_revision(psm2
